@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
-import { placeOrderApi, verifyPaymentApi } from '../services/api'; // Import verifyPaymentApi
+import { placeOrderApi, verifyPaymentApi, getUserAddressesApi } from '../services/api'; // Added getUserAddressesApi
 import { ArrowLeft, MapPin, CreditCard, Truck, CheckCircle, ShieldCheck, Loader2, Tag, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -18,22 +18,8 @@ const Checkout = () => {
   const { discount = 0, couponCode = null } = location.state || {};
 
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false); // <--- Controls Mock Modal
-  const [tempOrderId, setTempOrderId] = useState(null); // Stores Order ID while paying
-
-  // Security Check
-  useEffect(() => {
-    if (!user) {
-      toast.error("Please login first");
-      navigate('/login', { state: { from: '/checkout' } });
-    }
-  }, [user, navigate]);
-
-  // Calculations
-  const subTotal = Number(cartTotal) || 0;
-  const taxAmount = (subTotal * (settings?.tax_rate || 0)) / 100;
-  const deliveryFee = subTotal >= (settings?.free_delivery_threshold || 0) ? 0 : (settings?.delivery_fee || 0);
-  const finalTotal = Math.max(0, subTotal + taxAmount + deliveryFee - discount);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [tempOrderId, setTempOrderId] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -42,8 +28,46 @@ const Checkout = () => {
     address: '',
     city: 'Dubai',
     pincode: '',
-    paymentMethod: 'cod' // Default
+    paymentMethod: 'cod' 
   });
+
+  // Security Check & Address Prefill
+  useEffect(() => {
+    if (!user) {
+      toast.error("Please login first");
+      navigate('/login', { state: { from: '/checkout' } });
+      return;
+    }
+
+    // ⭐ Fetch Saved Address from DB
+    const loadSavedAddress = async () => {
+      try {
+        const res = await getUserAddressesApi();
+        if (res.success && res.data.length > 0) {
+          // Default address lo, nahi toh pehla wala
+          const addr = res.data.find(a => a.is_default === 1) || res.data[0];
+          
+          setFormData(prev => ({
+            ...prev,
+            // Building/Villa aur Street ko merge kar rahe hain textarea ke liye
+            address: `${addr.building_villa || ''} ${addr.street || ''} ${addr.area || ''}`.trim(),
+            city: addr.emirate || 'Dubai',
+            pincode: addr.pincode || ''
+          }));
+        }
+      } catch (error) {
+        console.error("Error loading address:", error);
+      }
+    };
+
+    loadSavedAddress();
+  }, [user, navigate]);
+
+  // Calculations
+  const subTotal = Number(cartTotal) || 0;
+  const taxAmount = (subTotal * (settings?.tax_rate || 0)) / 100;
+  const deliveryFee = subTotal >= (settings?.free_delivery_threshold || 0) ? 0 : (settings?.delivery_fee || 0);
+  const finalTotal = Math.max(0, subTotal + taxAmount + deliveryFee - discount);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -51,14 +75,13 @@ const Checkout = () => {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     setIsPlacingOrder(true);
-// ⭐ IMPORTANT: Cart items ko backend structure ke hisaab se map karein
+
     const formattedItems = cartItems.map(item => ({
         product_id: item.product_id,
         product_name: item.name,
         quantity: item.quantity,
         price: item.final_price || item.price,
         total: (item.final_price || item.price) * item.quantity,
-        // Custom juice ke liye configuration ko customization column me map karein
         customization: item.is_custom ? JSON.stringify(item.configuration) : null
     }));
 
@@ -71,7 +94,7 @@ const Checkout = () => {
             city: formData.city, 
             pincode: formData.pincode || '00000'
         },
-        paymentMethod: formData.paymentMethod, // 'cod' or 'card'
+        paymentMethod: formData.paymentMethod, 
         subTotal,
         deliveryFee,
         discount_amount: discount,
@@ -83,12 +106,10 @@ const Checkout = () => {
 
     if (result.success) {
         if (result.data.requiresPayment) {
-            // --- ONLINE PAYMENT FLOW ---
-            setTempOrderId(result.data.orderId); // Save ID
-            setShowPaymentModal(true); // Open "Fake" Bank Page
-            setIsPlacingOrder(false); // Stop loading on button
+            setTempOrderId(result.data.orderId);
+            setShowPaymentModal(true);
+            setIsPlacingOrder(false);
         } else {
-            // --- COD FLOW ---
             finishOrder(result.data.orderId);
         }
     } else {
@@ -97,24 +118,21 @@ const Checkout = () => {
     }
   };
 
-  // --- 2. FINISH ORDER (After COD or Successful Payment) ---
+  // --- 2. FINISH ORDER ---
   const finishOrder = (orderId) => {
       toast.success("Order Placed Successfully! 🎉");
       clearCart();
       navigate(`/order-success/${orderId}`);
   };
 
-  // --- 3. MOCK PAYMENT HANDLER (Called from Modal) ---
+  // --- 3. MOCK PAYMENT HANDLER ---
   const handleSimulatePayment = async () => {
-      // Simulate API Call delay
       const toastId = toast.loading("Processing Payment...");
       
-      // In real life, Razorpay/Stripe popup handles this.
-      // Here, we call backend to "verify" (fake verify)
       const verifyRes = await verifyPaymentApi({
           orderId: tempOrderId,
-          status: 'success', // Simulating success
-          paymentId: 'TXN_' + Math.floor(Math.random() * 1000000) // Fake Trans ID
+          status: 'success',
+          paymentId: 'TXN_' + Math.floor(Math.random() * 1000000)
       });
 
       toast.dismiss(toastId);
@@ -141,26 +159,34 @@ const Checkout = () => {
                 <MapPin size={18} className="text-green-700" /> Shipping Details
               </h2>
               <form id="checkout-form" onSubmit={handlePlaceOrder} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                 {/* ... (Same Input Fields as before) ... */}
-                 <div className="md:col-span-2">
+                  <div className="md:col-span-2">
                     <label className="text-xs font-bold text-gray-500 uppercase">Full Name</label>
                     <input required type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full p-3 bg-gray-50 border rounded-lg" />
-                 </div>
-                 <div>
+                  </div>
+                  <div>
                     <label className="text-xs font-bold text-gray-500 uppercase">Phone</label>
                     <input required type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full p-3 bg-gray-50 border rounded-lg" />
-                 </div>
-                 <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase">City</label>
-                    <select name="city" onChange={handleChange} className="w-full p-3 bg-gray-50 border rounded-lg">
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase">City / Emirate</label>
+                    <select name="city" value={formData.city} onChange={handleChange} className="w-full p-3 bg-gray-50 border rounded-lg">
                         <option value="Dubai">Dubai</option>
                         <option value="Abu Dhabi">Abu Dhabi</option>
+                        <option value="Sharjah">Sharjah</option>
+                        <option value="Ajman">Ajman</option>
+                        <option value="Fujairah">Fujairah</option>
+                        <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+                        <option value="Umm Al Quwain">Umm Al Quwain</option>
                     </select>
-                 </div>
-                 <div className="md:col-span-2">
-                    <label className="text-xs font-bold text-gray-500 uppercase">Address</label>
-                    <textarea required name="address" rows="3" onChange={handleChange} className="w-full p-3 bg-gray-50 border rounded-lg"></textarea>
-                 </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase">Address (Building, Villa, Street)</label>
+                    <textarea required name="address" rows="3" value={formData.address} onChange={handleChange} className="w-full p-3 bg-gray-50 border rounded-lg"></textarea>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase">Pincode / Zip (Optional)</label>
+                    <input type="text" name="pincode" value={formData.pincode} onChange={handleChange} className="w-full p-3 bg-gray-50 border rounded-lg" placeholder="00000" />
+                  </div>
               </form>
             </div>
 
@@ -170,7 +196,6 @@ const Checkout = () => {
                 <CreditCard size={18} className="text-green-700" /> Payment Method
               </h2>
               <div className="space-y-3">
-                {/* COD Option */}
                 <label className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMethod === 'cod' ? 'border-green-500 bg-green-50/50 ring-1 ring-green-500' : 'hover:bg-gray-50'}`}>
                   <input type="radio" name="paymentMethod" value="cod" checked={formData.paymentMethod === 'cod'} onChange={handleChange} className="accent-green-600 w-5 h-5" />
                   <div className="flex-1">
@@ -178,7 +203,6 @@ const Checkout = () => {
                   </div>
                 </label>
 
-                {/* Online Payment Option (ENABLED NOW) */}
                 <label className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMethod === 'card' ? 'border-green-500 bg-green-50/50 ring-1 ring-green-500' : 'hover:bg-gray-50'}`}>
                   <input type="radio" name="paymentMethod" value="card" checked={formData.paymentMethod === 'card'} onChange={handleChange} className="accent-green-600 w-5 h-5" />
                   <div className="flex-1">
@@ -192,14 +216,25 @@ const Checkout = () => {
 
           {/* RIGHT: Summary */}
           <div className="h-fit space-y-4 sticky top-24">
-             {/* ... (Same Summary Logic) ... */}
              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 pb-4 border-b">Order Summary</h3>
-                {/* Cart Items List... (Use your existing map code) */}
+                
+                <div className="max-h-60 overflow-y-auto mb-4 space-y-3 pr-2">
+                   {cartItems.map((item, idx) => (
+                      <div key={idx} className="flex justify-between text-sm">
+                         <span className="text-gray-600">{item.name} x {item.quantity}</span>
+                         <span className="font-medium text-gray-800">{formatPrice((item.final_price || item.price) * item.quantity)}</span>
+                      </div>
+                   ))}
+                </div>
                 
                 <div className="space-y-2 text-sm text-gray-600 border-t pt-4">
                     <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subTotal)}</span></div>
-                    {/* ... (Tax, Delivery, Discount rows) ... */}
+                    <div className="flex justify-between"><span>VAT ({settings?.tax_rate || 0}%)</span><span>{formatPrice(taxAmount)}</span></div>
+                    <div className="flex justify-between"><span>Delivery Fee</span><span className={deliveryFee === 0 ? "text-green-600 font-bold" : ""}>{deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)}</span></div>
+                    {discount > 0 && (
+                       <div className="flex justify-between text-green-600 font-bold"><span>Discount</span><span>-{formatPrice(discount)}</span></div>
+                    )}
                     <div className="flex justify-between font-extrabold text-lg text-gray-900 pt-3 border-t mt-2">
                         <span>Total Amount</span><span>{formatPrice(finalTotal)}</span>
                     </div>
@@ -216,7 +251,7 @@ const Checkout = () => {
       {/* --- MOCK PAYMENT MODAL --- */}
       {showPaymentModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-              <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden relative animation-fade-in">
+              <div className="bg-white w-full max-md rounded-2xl shadow-2xl overflow-hidden relative">
                   <div className="bg-gray-900 p-4 text-white flex justify-between items-center">
                       <h3 className="font-bold flex items-center gap-2"><ShieldCheck className="text-green-400"/> Secure Payment Gateway</h3>
                       <button onClick={() => setShowPaymentModal(false)}><X size={20}/></button>
@@ -228,7 +263,6 @@ const Checkout = () => {
                           <h2 className="text-3xl font-bold text-gray-800 mt-1">{formatPrice(finalTotal)}</h2>
                       </div>
 
-                      {/* Fake Card Form */}
                       <div className="space-y-3">
                           <input type="text" placeholder="Card Number" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50" defaultValue="4242 4242 4242 4242" readOnly />
                           <div className="grid grid-cols-2 gap-3">
@@ -239,7 +273,7 @@ const Checkout = () => {
 
                       <button 
                           onClick={handleSimulatePayment} 
-                          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl shadow-lg mt-2 transition-transform active:scale-95"
+                          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl shadow-lg mt-2"
                       >
                           Pay {formatPrice(finalTotal)}
                       </button>

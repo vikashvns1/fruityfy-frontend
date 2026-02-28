@@ -7,6 +7,7 @@ import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';
 import { getImageUrl } from '../../services/api';
 import WishlistHeart from './WishlistHeart';
+import { toast } from 'react-toastify'; // ⭐ Import Toast
 
 const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
   const navigate = useNavigate();
@@ -61,6 +62,14 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
       1
     );
 
+    toast.success(`${product.name} added to cart! 🛒`, {
+        position: "bottom-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+    });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1500);
   };

@@ -10,6 +10,7 @@ import { fetchProductBySlug, fetchProductsByCategory, fetchProductReviews, getIm
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import ProductCard from '../components/shared/ProductCard';
+import toast from 'react-hot-toast'; // ⭐ Import Toast
 
 const ProductDetails = () => {
     const { slug } = useParams();
@@ -74,10 +75,23 @@ const ProductDetails = () => {
     // --- HANDLERS ---
     const handleAddToCart = () => {
         if (!product) return;
-        addToCart(product, quantity);
-        alert(`${quantity} x ${product.name} added to cart!`);
-    };
 
+        // Ensure image_url is present in the object sent to cart
+        const productWithImg = {
+            ...product,
+            image_url: selectedImage || product.image_url // Ensuring cart gets the current image
+        };
+
+        addToCart(productWithImg, quantity);
+        toast.success(`${quantity} x ${product.name} added to cart! 🛒`, {
+            position: "bottom-center",
+            style: { borderRadius: '10px', background: '#333', color: '#fff' }
+        });
+    };
+const handleBuyNow = () => {
+        handleAddToCart();
+        navigate('/cart');
+    };
     const handleMouseMove = (e) => {
         const { left, top, width, height } = e.target.getBoundingClientRect();
         const x = ((e.clientX - left) / width) * 100;
@@ -178,6 +192,7 @@ const ProductDetails = () => {
                                 <ShoppingCart size={20} /> {isOutOfStock ? 'No Stock' : 'Add to Cart'}
                             </button>
                             <button 
+                            onClick={handleBuyNow}
                                 disabled={isOutOfStock}
                                 className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-100 transition-all active:scale-95 disabled:bg-slate-200 uppercase tracking-tight text-sm"
                             >

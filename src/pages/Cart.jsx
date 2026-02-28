@@ -105,7 +105,8 @@ const Cart = () => {
                     {/* LEFT: Items List */}
                     {/* LEFT: Items List Section */}
                     <div className="flex-1 space-y-4">
-                        {cartItems.map((item) => (
+                        {console.log("Cart Items:", cartItems)} {/* Debugging Log */}
+                       { cartItems.map((item) => (
                             <div key={item.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex gap-4 items-center">
 
                                 {/* Image Section */}

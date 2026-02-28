@@ -344,8 +344,6 @@ export const requestExchangeApi = async (data) => {
     }
 };
 
-// ... existing imports and code ...
-
 // ==========================================
 // POPUP API (Add this section)
 // ==========================================
@@ -367,6 +365,15 @@ export const getWeeklyBoxes = () => {
 
 export const getWeeklyBoxBySlug = (slug) => {
   return api.get(`/weeklyBox/slug/${slug}`);
+};
+
+export const getUserAddressesApi = async () => {
+    try {
+        const response = await api.get('/orders/my-addresses', getAuthHeaders());
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
 };
 
 export default api;

@@ -9,9 +9,12 @@ import {
     MdChevronLeft,
     MdChevronRight,
     MdBolt,
-    MdStars
+    MdStars,
+    MdCheck
 } from "react-icons/md";
 import api, { getImageUrl } from "../../services/api";
+import { useCart } from "../../context/CartContext"; // ⭐ Cart Context Import kiya
+import { toast } from 'react-toastify';
 
 const JuiceBuilderBanner = () => {
     const navigate = useNavigate();
@@ -20,7 +23,8 @@ const JuiceBuilderBanner = () => {
     const [mainBuilderId, setMainBuilderId] = useState(null);
     const scrollRef = useRef(null);
     const standardScrollRef = useRef(null); // Naya ref niche wali strip ke liye
-
+    const { addToCart } = useCart();
+    const [addedItems, setAddedItems] = useState({});
     useEffect(() => {
         api.get("/products?category_id=11").then((res) => {
             if (res.data.success) {
@@ -40,6 +44,23 @@ const JuiceBuilderBanner = () => {
             }
         });
     }, []);
+
+    const handleAddSimpleToCart = (juice, e) => {
+        e.stopPropagation(); // Card click event ko rokne ke liye
+        addToCart(juice, 1);
+        toast.success(`${juice.name} added to cart! 🥤`, {
+            position: "bottom-right",
+            autoClose: 1500
+        });
+
+        // ⭐ UI Feedback: Item ID ko addedItems state mein dalo
+        setAddedItems(prev => ({ ...prev, [juice.id]: true }));
+
+        // 1.5 second baad reset kar do
+        setTimeout(() => {
+            setAddedItems(prev => ({ ...prev, [juice.id]: false }));
+        }, 1500);
+    };
 
     const handleStartMixing = () => {
         if (mainBuilderId) {
@@ -136,89 +157,100 @@ const JuiceBuilderBanner = () => {
                             </div>
                         </div>
 
-                      <div ref={standardScrollRef} className="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth py-6 px-2">
-    {standardJuices.map((juice) => (
-        <div 
-            key={juice.id} 
-            className="min-w-[280px] h-[180px] relative bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-[2rem] p-4 flex items-center gap-5 
+                        <div ref={standardScrollRef} className="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth py-6 px-2">
+                            {standardJuices.map((juice) => (
+                                <div
+                                    key={juice.id}
+                                    className="min-w-[280px] h-[180px] relative bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-[2rem] p-4 flex items-center gap-5 
                        hover:bg-white/20 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] border border-white/10 hover:border-[#FACC15]/40 
                        group cursor-pointer shadow-2xl hover:shadow-[#FACC15]/10"
-        >
-            {/* Image Section - Thoda bada size */}
-            <div className="relative w-24 h-24 bg-gradient-to-t from-black/40 to-black/10 rounded-3xl overflow-hidden flex-shrink-0 flex items-center justify-center border border-white/10 shadow-inner">
-                {juice.image_url ? (
-                    <img
-                        src={getImageUrl(juice.image_url)}
-                        alt={juice.name}
-                        className="w-[85%] h-[85%] object-contain group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-700"
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FACC15]/20 to-transparent text-[#FACC15] font-bold text-4xl">
-                        {juice.name.charAt(0)}
-                    </div>
-                )}
-            </div>
+                                >
+                                    {/* Image Section - Thoda bada size */}
+                                    <div onClick={() => navigate(`/product/${juice.slug}`)}
+                                        className="relative w-24 h-24 bg-gradient-to-t from-black/40 to-black/10 rounded-3xl overflow-hidden flex-shrink-0 flex items-center justify-center border border-white/10 shadow-inner">
+                                        {juice.image_url ? (
+                                            <img
+                                                src={getImageUrl(juice.image_url)}
+                                                alt={juice.name}
+                                                className="w-[85%] h-[85%] object-contain group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-700"
+                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FACC15]/20 to-transparent text-[#FACC15] font-bold text-4xl">
+                                                {juice.name.charAt(0)}
+                                            </div>
+                                        )}
+                                    </div>
 
-            {/* Content Section - Height manage karne ke liye flex-col */}
-            <div className="flex flex-col justify-between h-full py-1 flex-1">
-                <div>
-                    <h5 className="text-white font-bold text-sm tracking-tight line-clamp-1 group-hover:text-[#FACC15] transition-colors">
-                        {juice.name}
-                    </h5>
-                    {/* Short Description - Ab clear dikhega */}
-                    <p className="text-white/50 text-[10px] leading-tight mt-1 line-clamp-2 italic font-light">
-                        {juice.short_description}
-                    </p>
-                </div>
-                
-                <div className="flex flex-col gap-2">
-    {/* Price & Discount Section */}
-    <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-2">
-            {/* New Discounted Price */}
-            <span className="text-[#FACC15] font-black text-2xl tracking-tighter leading-none">
-                ₹{Math.round(juice.discount_price || juice.price)}
-            </span>
-            
-            {/* Original Price - Now much clearer with a Reddish-Grey strike */}
-            {juice.discount_price && parseFloat(juice.discount_price) < parseFloat(juice.price) && (
-                <span className="text-white/30 text-xs line-through decoration-red-500/50 font-medium">
-                    ₹{juice.price}
-                </span>
-            )}
-        </div>
+                                    {/* Content Section - Height manage karne ke liye flex-col */}
+                                    <div className="flex flex-col justify-between h-full py-1 flex-1">
+                                        <div>
+                                            <h5 className="text-white font-bold text-sm tracking-tight line-clamp-1 group-hover:text-[#FACC15] transition-colors">
+                                                {juice.name}
+                                            </h5>
+                                            {/* Short Description - Ab clear dikhega */}
+                                            <p className="text-white/50 text-[10px] leading-tight mt-1 line-clamp-2 italic font-light">
+                                                {juice.short_description}
+                                            </p>
+                                        </div>
 
-        {/* Savings Badge - "15% OFF" type look */}
-        {juice.discount_price && parseFloat(juice.discount_price) < parseFloat(juice.price) && (
-            <span className="text-[9px] text-green-400 font-bold tracking-widest uppercase">
-                Save ₹{Math.round(juice.price - juice.discount_price)} OFF
-            </span>
-        )}
-    </div>
+                                        <div className="flex flex-col gap-2">
+                                            {/* Price & Discount Section */}
+                                            <div className="flex flex-col gap-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    {/* New Discounted Price */}
+                                                    <span className="text-[#FACC15] font-black text-2xl tracking-tighter leading-none">
+                                                        ₹{Math.round(juice.discount_price || juice.price)}
+                                                    </span>
 
-    {/* Add Button */}
-    <button className="w-fit flex items-center gap-2 px-5 py-2.5 bg-[#FACC15] text-black rounded-xl text-[11px] font-black uppercase tracking-wider shadow-lg shadow-[#FACC15]/20 hover:bg-white hover:scale-105 transition-all active:scale-95">
-        <MdAddShoppingCart className="text-sm" /> 
-        Add
-    </button>
-</div>
-            </div>
+                                                    {/* Original Price - Now much clearer with a Reddish-Grey strike */}
+                                                    {juice.discount_price && parseFloat(juice.discount_price) < parseFloat(juice.price) && (
+                                                        <span className="text-white/30 text-xs line-through decoration-red-500/50 font-medium">
+                                                            ₹{juice.price}
+                                                        </span>
+                                                    )}
+                                                </div>
 
-            {/* Labels - Bestseller ya New Arrival */}
-            {juice.is_bestseller === 1 && (
-                <div className="absolute -top-2 -left-2 bg-orange-500 text-white text-[9px] font-black px-3 py-1 rounded-full shadow-lg border border-white/20">
-                    BESTSELLER
-                </div>
-            )}
-            {juice.is_new_arrival === 1 && juice.is_bestseller !== 1 && (
-                <div className="absolute -top-2 -left-2 bg-blue-500 text-white text-[9px] font-black px-3 py-1 rounded-full shadow-lg border border-white/20">
-                    NEW
-                </div>
-            )}
-        </div>
-    ))}
-</div>
+                                                {/* Savings Badge - "15% OFF" type look */}
+                                                {juice.discount_price && parseFloat(juice.discount_price) < parseFloat(juice.price) && (
+                                                    <span className="text-[9px] text-green-400 font-bold tracking-widest uppercase">
+                                                        Save ₹{Math.round(juice.price - juice.discount_price)} OFF
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Add Button */}
+                                          <button
+                                                onClick={(e) => handleAddSimpleToCart(juice, e)}
+                                                className={`w-fit flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-lg ${
+                                                    addedItems[juice.id] 
+                                                    ? 'bg-white text-[#064E3B] scale-105 shadow-[#FACC15]/40' 
+                                                    : 'bg-[#FACC15] text-black hover:bg-white shadow-[#FACC15]/20'
+                                                }`}
+                                            >
+                                                {addedItems[juice.id] ? (
+                                                    <><MdCheck className="text-sm scale-125" /> Added</>
+                                                ) : (
+                                                    <><MdAddShoppingCart className="text-sm" /> Add</>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Labels - Bestseller ya New Arrival */}
+                                    {juice.is_bestseller === 1 && (
+                                        <div className="absolute -top-2 -left-2 bg-orange-500 text-white text-[9px] font-black px-3 py-1 rounded-full shadow-lg border border-white/20">
+                                            BESTSELLER
+                                        </div>
+                                    )}
+                                    {juice.is_new_arrival === 1 && juice.is_bestseller !== 1 && (
+                                        <div className="absolute -top-2 -left-2 bg-blue-500 text-white text-[9px] font-black px-3 py-1 rounded-full shadow-lg border border-white/20">
+                                            NEW
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </motion.div>
             </div>

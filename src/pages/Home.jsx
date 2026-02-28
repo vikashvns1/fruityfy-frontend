@@ -88,121 +88,121 @@ const Home = () => {
       {/* ================= 1. HERO ================= */}
       {showSection('show_hero') && <Hero />}
 
-{/* ================= 2. BEST SELLERS ================= */}
-{showSection('show_bestsellers') && featuredProducts.length > 0 && (
-  <section className="bg-[#F5F7F6] py-16 relative">
-    <div className="max-w-[1536px] mx-auto px-4">
+      {/* ================= 2. BEST SELLERS ================= */}
+      {showSection('show_bestsellers') && featuredProducts.length > 0 && (
+        <section className="bg-[#F5F7F6] py-16 relative">
+          <div className="max-w-[1536px] mx-auto px-4">
 
-      {/* HEADER */}
-      <div className="flex items-end justify-between mb-10">
-        <div>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#064E3B] tracking-tight">
-            Best Sellers
-          </h2>
-          <p className="text-gray-400 mt-2 text-sm">
-            Customer favorites everyone loves
-          </p>
-        </div>
+            {/* HEADER */}
+            <div className="flex items-end justify-between mb-10">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#064E3B] tracking-tight">
+                  Best Sellers
+                </h2>
+                <p className="text-gray-400 mt-2 text-sm">
+                  Customer favorites everyone loves
+                </p>
+              </div>
 
-        <button
-          onClick={() => navigate('/best-sellers')}
-          className="
+              <button
+                onClick={() => navigate('/best-sellers')}
+                className="
             hidden md:inline-flex items-center gap-2
             font-bold text-sm text-[#064E3B]
             hover:text-green-700 transition
           "
-        >
-          View All
-          <span className="text-lg">→</span>
-        </button>
-      </div>
+              >
+                View All
+                <span className="text-lg">→</span>
+              </button>
+            </div>
 
-      {/* SCROLL WRAPPER */}
-      <div className="relative">
+            {/* SCROLL WRAPPER */}
+            <div className="relative">
 
-        {/* LEFT GRADIENT */}
-        <div className="pointer-events-none absolute left-0 top-0 h-full w-20 bg-gradient-to-r from-[#F5F7F6] to-transparent z-10" />
+              {/* LEFT GRADIENT */}
+              <div className="pointer-events-none absolute left-0 top-0 h-full w-20 bg-gradient-to-r from-[#F5F7F6] to-transparent z-10" />
 
-        {/* RIGHT GRADIENT */}
-        <div className="pointer-events-none absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-[#F5F7F6] to-transparent z-10" />
+              {/* RIGHT GRADIENT */}
+              <div className="pointer-events-none absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-[#F5F7F6] to-transparent z-10" />
 
-        {/* LEFT ARROW */}
-        <button
-          onClick={() => {
-            document.getElementById('best-seller-scroll')?.scrollBy({
-              left: -320,
-              behavior: 'smooth',
-            });
-          }}
-          className="
+              {/* LEFT ARROW */}
+              <button
+                onClick={() => {
+                  document.getElementById('best-seller-scroll')?.scrollBy({
+                    left: -320,
+                    behavior: 'smooth',
+                  });
+                }}
+                className="
             hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 z-20
             w-10 h-10 rounded-full bg-white shadow-lg
             items-center justify-center text-xl
             hover:scale-110 transition
           "
-        >
-          ‹
-        </button>
+              >
+                ‹
+              </button>
 
-        {/* RIGHT ARROW */}
-        <button
-          onClick={() => {
-            document.getElementById('best-seller-scroll')?.scrollBy({
-              left: 320,
-              behavior: 'smooth',
-            });
-          }}
-          className="
+              {/* RIGHT ARROW */}
+              <button
+                onClick={() => {
+                  document.getElementById('best-seller-scroll')?.scrollBy({
+                    left: 320,
+                    behavior: 'smooth',
+                  });
+                }}
+                className="
             hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 z-20
             w-10 h-10 rounded-full bg-white shadow-lg
             items-center justify-center text-xl
             hover:scale-110 transition
           "
-        >
-          ›
-        </button>
+              >
+                ›
+              </button>
 
-        {/* PRODUCTS */}
-        <div
-          id="best-seller-scroll"
-          className="
+              {/* PRODUCTS */}
+              <div
+                id="best-seller-scroll"
+                className="
             flex gap-6 overflow-x-auto
             scroll-smooth snap-x snap-mandatory
             pb-6 px-1
             scrollbar-hide
           "
-        >
-          {featuredProducts.slice(0, 10).map((product) => (
-            <div
-              key={product.id}
-              className="snap-start min-w-[260px] max-w-[260px]"
-            >
-              <ProductCard product={product} />
+              >
+                {featuredProducts.slice(0, 10).map((product) => (
+                  <div
+                    key={product.id}
+                    className="snap-start min-w-[260px] max-w-[260px]"
+                  >
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* MOBILE VIEW ALL */}
-      <div className="md:hidden mt-8 text-center">
-        <button
-          onClick={() => navigate('/best-sellers')}
-          className="
+            {/* MOBILE VIEW ALL */}
+            <div className="md:hidden mt-8 text-center">
+              <button
+                onClick={() => navigate('/best-sellers')}
+                className="
             inline-flex items-center gap-2
             px-6 py-3 rounded-full
             bg-[#064E3B] text-white
             font-bold text-sm
             hover:bg-green-800 transition
           "
-        >
-          View All Best Sellers →
-        </button>
-      </div>
-    </div>
-  </section>
-)}
+              >
+                View All Best Sellers →
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
-<JuiceBuilderBanner />
+      <JuiceBuilderBanner />
       {/* AFTER BEST SELLERS */}
       <WeeklyFruitBoxSection />
 
@@ -213,8 +213,8 @@ const Home = () => {
       {showSection('show_trust_strip') && <WhyChooseUs />}
 
       {/* ================= 5. SHOP BY CATEGORY ================= */}
-        {showSection('show_categories') && <CategorySection categories={categories}  />}
-      
+      {showSection('show_categories') && <CategorySection categories={categories} />}
+
 
       {/* ================= 6. MIDDLE PROMO BANNER (CTA) ================= */}
       {showSection('show_promo_banner') && middleBanner && (
