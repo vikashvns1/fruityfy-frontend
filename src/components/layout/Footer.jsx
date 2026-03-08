@@ -19,7 +19,7 @@ const Footer = () => {
                 {/* Brand Info */}
                 <div className="space-y-5">
                     <h2 className="text-3xl font-serif font-bold text-yellow-400 flex items-center gap-2">
-                        <span>🍏</span> Fruityfy.
+                        <span>🍏</span> Fruitify.
                     </h2>
                     <p className="text-green-100 text-sm leading-relaxed max-w-xs opacity-90">
                         Delivering nature's finest, freshest organic fruits directly from selected farms to your doorstep in Dubai & Abu Dhabi.
@@ -92,10 +92,10 @@ const Footer = () => {
                                 <FaEnvelope size={14} />
                             </div>
                             <a
-                                href="mailto:support@fruityfy.com"
+                                href="mailto:support@fruitify.com"
                                 className="text-sm hover:text-yellow-400 transition-colors"
                             >
-                                support@fruityfy.com
+                                support@fruitify.com
                             </a>
                         </li>
 
@@ -121,7 +121,7 @@ const Footer = () => {
             <div className="border-t border-green-800/50 pt-6 relative z-10">
                 <div className="w-[95%] max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className="text-xs text-green-200/60">
-                        © 2026 <span className="text-yellow-400 font-bold">Fruityfy</span>. All rights reserved.
+                        © 2026 <span className="text-yellow-400 font-bold">Fruitify</span>. All rights reserved.
                     </p>
 
                     {/* Payment Icons */}

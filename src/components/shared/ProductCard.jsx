@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Star, Check, Plus } from 'lucide-react';
+import { Star, Check, Plus, Tag } from 'lucide-react'; // ⭐ Tag icon added
 import { useState } from 'react';
 
 // Contexts & Helpers
@@ -7,7 +7,7 @@ import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';
 import { getImageUrl } from '../../services/api';
 import WishlistHeart from './WishlistHeart';
-import { toast } from 'react-toastify'; // ⭐ Import Toast
+import { toast } from 'react-toastify';
 
 const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
   const navigate = useNavigate();
@@ -15,13 +15,25 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
   const { formatPrice } = useSettings();
   const [isAdded, setIsAdded] = useState(false);
 
-  /* ================= PRICE LOGIC (API BASED) ================= */
-
+  /* ================= PRICE & CAMPAIGN LOGIC ================= */
   const basePrice = Number(product.price) || 0;
-  const discountPrice = Number(product.discount_price) || null;
+  const standardDiscountPrice = Number(product.discount_price) || null;
 
-  const finalPrice = discountPrice ?? basePrice;
-  const originalPrice = discountPrice ? basePrice : null;
+  // 🚀 Naya Campaign Logic: Agar campaign prop hai, toh price recalculate hoga
+  let finalPrice = standardDiscountPrice ?? basePrice;
+  let originalPrice = standardDiscountPrice ? basePrice : null;
+  let campaignBadgeText = null;
+
+  if (campaign) {
+    originalPrice = basePrice; // Campaign mein base price hi strike-through hoga
+    if (campaign.discount_type === 'percentage') {
+      finalPrice = basePrice - (basePrice * (Number(campaign.discount_value) / 100));
+      campaignBadgeText = `${Math.round(campaign.discount_value)}% OFF`;
+    } else if (campaign.discount_type === 'flat') {
+      finalPrice = basePrice - Number(campaign.discount_value);
+      campaignBadgeText = `AED ${campaign.discount_value} OFF`;
+    }
+  }
 
   const discountPercent =
     originalPrice && finalPrice
@@ -29,10 +41,7 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
       : 0;
 
   /* ================= META ================= */
-
   const isOutOfStock = product.stock_quantity === 0;
-
-  // API me rating nahi hai → safe fallback
   const rating = product.rating ?? 4.5;
   const ratingCount = product.rating_count ?? 0;
 
@@ -45,7 +54,6 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
   const delivery = deliveryMap[product.delivery_eta] || deliveryMap.same_day;
 
   /* ================= ADD TO CART ================= */
-
   const handleAddToCart = (e) => {
     e.stopPropagation();
 
@@ -54,6 +62,7 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
       return;
     }
 
+    // ⭐ Cart mein discounted price bhej rahe hain
     addToCart(
       {
         ...product,
@@ -65,10 +74,6 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
     toast.success(`${product.name} added to cart! 🛒`, {
         position: "bottom-right",
         autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1500);
@@ -77,23 +82,31 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
   return (
     <div
       onClick={() => navigate(`/product/${product.slug}`)}
-      className="
+      className={`
         group bg-white rounded-2xl shadow-soft hover:shadow-card
         transition-all duration-300 cursor-pointer
         overflow-hidden flex flex-col h-full min-h-[400px]
         relative transform hover:-translate-y-1
-      "
+        ${campaign ? 'border-2 border-orange-100' : ''} 
+      `}
     >
       {/* ================= BADGES ================= */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+        {/* 🔥 Campaign Specific Badge */}
+        {campaign && (
+            <span className="bg-orange-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg animate-pulse">
+                <Tag size={10} /> {campaignBadgeText}
+            </span>
+        )}
+
         {product.is_new_arrival === 1 && (
-          <span className="bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+          <span className="bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase w-fit">
             New
           </span>
         )}
 
-        {discountPercent > 0 && (
-          <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+        {!campaign && discountPercent > 0 && (
+          <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full w-fit">
             -{discountPercent}%
           </span>
         )}
@@ -106,7 +119,7 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
         </div>
       </div>
 
-      {/* ================= IMAGE (FIXED FRAME) ================= */}
+      {/* ================= IMAGE ================= */}
       <div className="relative w-full aspect-square bg-cream/50 flex items-center justify-center p-4 overflow-hidden">
         <div className="w-full h-full bg-white rounded-xl overflow-hidden flex items-center justify-center">
           <img
@@ -115,10 +128,6 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
             className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${
               isOutOfStock ? 'grayscale opacity-60' : ''
             }`}
-            onError={(e) =>
-              (e.target.src =
-                'https://cdn-icons-png.flaticon.com/512/2748/2748558.png')
-            }
           />
         </div>
 
@@ -133,7 +142,6 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
 
       {/* ================= CONTENT ================= */}
       <div className="p-5 flex flex-col flex-1">
-        {/* Meta */}
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] font-bold text-primaryLight uppercase flex items-center gap-1">
             {delivery.icon} {delivery.label}
@@ -147,31 +155,26 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
           )}
         </div>
 
-        {/* Title */}
         <h3 className="text-base font-serif font-bold leading-tight mb-1 line-clamp-2">
           {product.name}
         </h3>
 
-        {/* Unit */}
         <p className="text-xs text-muted mb-4">
           {product.unit ? `Approx. ${product.unit}` : 'Per Item'}
         </p>
 
-        {/* Bottom */}
         <div className="mt-auto flex items-center justify-between">
-          {/* Price */}
           <div className="flex flex-col">
-            {originalPrice && (
+            {originalPrice && originalPrice > finalPrice && (
               <span className="text-xs text-gray-400 line-through">
                 {formatPrice(originalPrice)}
               </span>
             )}
-            <span className="text-lg font-bold text-primary">
+            <span className={`text-lg font-bold ${campaign ? 'text-orange-600' : 'text-primary'}`}>
               {formatPrice(finalPrice)}
             </span>
           </div>
 
-          {/* Add Button */}
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
@@ -184,6 +187,8 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
                   ? 'bg-gray-100 text-gray-400'
                   : isAdded
                   ? 'bg-primary text-white scale-105'
+                  : campaign 
+                  ? 'bg-orange-600 text-white hover:bg-orange-700 hover:shadow-lg' 
                   : 'bg-primary text-white hover:bg-primaryLight hover:shadow-lg'
               }
             `}
@@ -191,16 +196,12 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
             {isAdded ? (
               <>
                 <Check size={16} />
-                <span className="hidden md:inline text-xs font-bold">
-                  Added
-                </span>
+                <span className="hidden md:inline text-xs font-bold">Added</span>
               </>
             ) : (
               <>
                 <Plus size={18} strokeWidth={3} />
-                <span className="hidden md:inline text-xs font-bold">
-                  Add
-                </span>
+                <span className="hidden md:inline text-xs font-bold">Add</span>
               </>
             )}
           </button>

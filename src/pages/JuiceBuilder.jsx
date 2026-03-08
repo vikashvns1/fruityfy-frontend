@@ -160,7 +160,7 @@
 
 //                                 {/* 2. Personalized 6th Card (Handling Blank & Saved States) */}
 //                                 {(() => {
-//                                     const savedRecipe = JSON.parse(localStorage.getItem('fruityfy_custom_mix'));
+//                                     const savedRecipe = JSON.parse(localStorage.getItem('fruitify_custom_mix'));
 //                                     const masterData = templates.find(t => t.id === 81);
 
 //                                     if (savedRecipe) {
@@ -592,7 +592,7 @@ const JuiceBuilder = () => {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            localStorage.removeItem('fruityfy_custom_mix');
+            localStorage.removeItem('fruitify_custom_mix');
             
             // Ek chota sa success message dikhao
             Swal.fire({
@@ -674,7 +674,7 @@ const JuiceBuilder = () => {
                                 ))}
 
                                 {(() => {
-                                    const savedRecipe = JSON.parse(localStorage.getItem('fruityfy_custom_mix'));
+                                    const savedRecipe = JSON.parse(localStorage.getItem('fruitify_custom_mix'));
                                     const masterData = templates.find(t => t.id === 81);
 
                                     if (savedRecipe) {

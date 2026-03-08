@@ -25,6 +25,8 @@ import OccasionLanding from './pages/OccasionLanding';
 import BestSeller from './pages/BestSeller';
 import JuiceBuilder from './pages/JuiceBuilder';
 import CustomLab from './pages/CustomLab';
+import OfferPage from './pages/OfferPage';
+
 function App() {
   return (
     <SettingsProvider>
@@ -54,6 +56,7 @@ function App() {
                 <Route path="/juice-builder" element={<JuiceBuilder />} />
                 <Route path="/juice-builder/:id" element={<JuiceBuilder />} />
                 <Route path="/juice-builder/custom" element={<CustomLab />} />
+                <Route path="/offers" element={<OfferPage />} />
               </Routes>
             </main>
 

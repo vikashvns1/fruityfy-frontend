@@ -218,7 +218,7 @@ const OrderDetails = () => {
                                             {/* Product Image */}
                                             <div className="w-24 h-24 bg-gray-50 rounded-2xl p-3 border border-gray-50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                                 <img
-                                                    src={getImageUrl(item.product_image)}
+                                                    src={getImageUrl(item.product_image || item.image_url || item.image, "https://cdn-icons-png.flaticon.com/512/2748/2748558.png")}
                                                     alt={item.product_name}
                                                     className="max-h-full object-contain mix-blend-multiply"
                                                 />

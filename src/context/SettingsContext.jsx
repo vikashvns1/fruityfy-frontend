@@ -9,7 +9,7 @@ export const SettingsProvider = ({ children }) => {
     // 1. Initial State with ALL Database Columns
     const [settings, setSettings] = useState({
         // --- Basic Info ---
-        site_name: 'Fruityfy',
+        site_name: 'Fruitify',
         currency: 'AED',
         delivery_fee: 0,
         free_delivery_threshold: 0,

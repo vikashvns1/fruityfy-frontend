@@ -73,7 +73,6 @@ const Navbar = () => {
       <header className={`sticky top-0 z-50 bg-white transition-all ${scrolled ? 'shadow-lg' : 'shadow-sm'}`}>
 
         {/* TOP STRIP */}
-        {/* TOP STRIP */}
         <div className="hidden md:flex items-center bg-gradient-to-r from-lime-100 to-yellow-100 text-[#14532d] text-[11px] py-1 px-4 font-semibold relative overflow-hidden">
 
           {/* FULL WIDTH MARQUEE AREA (except contact) */}
@@ -88,7 +87,7 @@ const Navbar = () => {
           </div>
 
           {/* RIGHT CORNER CONTACT (FIXED) */}
-          <div className="flex items-center gap-3 ml-4 shrink-0">
+          {/* <div className="flex items-center gap-3 ml-4 shrink-0">
             <span className="text-black font-medium italic uppercase text-[10px]">
               Need Quick Help?
             </span>
@@ -100,8 +99,23 @@ const Navbar = () => {
               <Phone size={12} fill="black" />
               {settings.support_phone}
             </a>
-          </div>
+          </div> */}
+          <div className="flex items-center gap-3 ml-4 shrink-0">
+            <span className="text-black font-medium italic uppercase text-[10px]">
+              Need Quick Help?
+            </span>
 
+            <a
+              href={`tel:${settings.support_phone}`}
+              className="bg-[#FFD700] text-black px-4 py-1 rounded-full font-black text-[12px] shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:bg-[#FFC000] hover:scale-105 transition-all duration-300 flex items-center gap-2"
+            >
+              {/* This wrapper div handles the blinking animation for the icon and number only */}
+              <div className="flex items-center gap-2 animate-[pulse_1s_infinite]">
+                <Phone size={12} fill="black" />
+                {settings.support_phone}
+              </div>
+            </a>
+          </div>
         </div>
 
         {/* MAIN HEADER */}
@@ -117,7 +131,7 @@ const Navbar = () => {
               <Link to="/" className="flex items-center">
                 <img
                   src={logoImg}
-                  alt="Fruityfy"
+                  alt="Fruitify"
                   className={`transition-all ${scrolled ? 'h-12' : 'h-16'} w-auto object-contain`}
                 />
               </Link>
@@ -131,7 +145,7 @@ const Navbar = () => {
               <Link to="/" className="flex items-center">
                 <img
                   src={logoImg}
-                  alt="Fruityfy"
+                  alt="Fruitify"
                   /* h-auto aur w-40/w-52 se logo wide dikhega aur aspect ratio maintain rahega */
                   className={`transition-all duration-300 object-contain ${scrolled ? 'w-32 lg:w-40' : 'w-44 lg:w-56'
                     } h-auto`}
@@ -249,7 +263,7 @@ const Navbar = () => {
             </div>
 
             <Link
-              to="/shop"
+              to="/offers"
               className="mr-4 bg-yellow-400 text-[#064E3B] px-5 py-1.5 rounded-full text-xs font-bold hover:bg-yellow-300"
             >
               Exciting Offers.

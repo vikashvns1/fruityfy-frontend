@@ -1,25 +1,33 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowForward, MdLocalOffer } from 'react-icons/md';
-import { fetchActiveCampaign, getImageUrl } from '../../services/api'; // <--- IMPORTS
+import { fetchActiveCampaign, getImageUrl } from '../../services/api';
 
 const DealOfTheDay = () => {
     const navigate = useNavigate();
     const [campaign, setCampaign] = useState(null);
-    const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+    const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-    // 1. Fetch Campaign using Service (No direct axios/api call here)
     useEffect(() => {
         const loadCampaign = async () => {
-            const data = await fetchActiveCampaign();
-            setCampaign(data);
+            try {
+                const data = await fetchActiveCampaign();
+                if (Array.isArray(data) && data.length > 0) {
+                const featured = data.find(c => c.is_featured === 1);
+                setCampaign(featured || data[0]); 
+            } 
+            else if (data && !Array.isArray(data)) {
+                setCampaign(data);
+            }
+            } catch (err) {
+                console.error("Deal fetching error:", err);
+            }
         };
         loadCampaign();
     }, []);
 
-    // 2. Timer Logic
     useEffect(() => {
-        if (!campaign) return;
+        if (!campaign || !campaign.end_date) return;
 
         const timer = setInterval(() => {
             const now = new Date().getTime();
@@ -27,99 +35,81 @@ const DealOfTheDay = () => {
 
             if (distance < 0) {
                 clearInterval(timer);
-                setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
                 return;
             }
 
-            const hours = Math.floor(distance / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            setTimeLeft({ hours, minutes, seconds });
+            setTimeLeft({
+                days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+                seconds: Math.floor((distance % (1000 * 60)) / 1000)
+            });
         }, 1000);
 
         return () => clearInterval(timer);
     }, [campaign]);
 
-    // 3. Smart Navigation Handler
     const handleGrabDeal = () => {
-        if (!campaign?.slug) return;
-        navigate(`/campaign/${campaign.slug}`);
+        if (campaign?.slug) {
+            navigate(`/campaign/${campaign.slug}`);
+        }
     };
-
-
 
     if (!campaign) return null;
 
+    // 🔥 Balanced Gradient & Background
+    const bannerStyle = {
+        backgroundImage: `linear-gradient(to right, rgba(255, 248, 240, 1) 35%, rgba(255, 248, 240, 0) 100%), url(${getImageUrl(campaign.banner_image)})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'right center',
+    };
+
     return (
-        <section className="bg-[#FFF8F0] rounded-xl overflow-hidden shadow-sm border border-orange-100 my-6 relative max-w-[1536px] mx-auto px-0">
-            <div className="flex flex-col md:flex-row items-center h-auto md:h-[280px]">
-
-                {/* LEFT: Text Content */}
-                <div className="p-6 md:p-8 flex-1 text-center md:text-left">
-                    <div className="inline-flex items-center gap-2 bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold mb-3 tracking-wide uppercase">
-                        <MdLocalOffer size={12} /> Today's Exclusive
-                    </div>
-
-                    <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900 mb-2 leading-tight">
-                        {campaign.name}
-                    </h2>
-
-                    <p className="text-gray-600 mb-5 text-sm md:text-base font-medium">
-                        {/* Subtitle with formatting */}
-                        {campaign.subtitle ? (
-                            campaign.subtitle.split(/(% OFF)/i).map((part, index) =>
-                                part.match(/% OFF/i) ? (
-                                    <span key={index} className="text-red-600 font-bold">{part}</span>
-                                ) : (
-                                    <span key={index}>{part}</span>
-                                )
-                            )
-                        ) : "Get amazing discounts on premium items."}
-                    </p>
-
-                    {/* Timer */}
-                    <div className="flex gap-3 justify-center md:justify-start mb-6">
-                        {['Hours', 'Mins', 'Secs'].map((label, idx) => {
-                            const val = idx === 0 ? timeLeft.hours : idx === 1 ? timeLeft.minutes : timeLeft.seconds;
-                            return (
-                                <div key={label} className="text-center">
-                                    <div className="w-12 h-12 bg-white border border-gray-100 rounded-lg flex items-center justify-center text-xl font-bold text-[#064E3B] shadow-sm">
-                                        {val.toString().padStart(2, '0')}
-                                    </div>
-                                    <span className="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-wider">{label}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    <button
-                        onClick={handleGrabDeal}
-                        className="bg-[#064E3B] hover:bg-[#053d2e] text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md transition-all flex items-center gap-2 mx-auto md:mx-0 group"
-                    >
-                        Grab Deal <MdArrowForward size={16} className="group-hover:translate-x-1 transition-transform" />
-                    </button>
+        <section 
+            style={bannerStyle}
+            className="rounded-3xl overflow-hidden shadow-lg border border-orange-100 my-6 relative max-w-[1536px] mx-auto min-h-[280px] md:min-h-[320px] flex items-center transition-all duration-300"
+        >
+            <div className="relative z-10 p-6 md:p-12 w-full md:w-3/5 lg:w-1/2 text-left">
+                {/* Badge - Standardized */}
+                <div className="inline-flex items-center gap-2 bg-red-600 text-white px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-4 tracking-wider uppercase shadow-md">
+                    <MdLocalOffer size={14} /> Today's Exclusive Offer
                 </div>
 
-                {/* RIGHT: Image (Using Helper) */}
-                <div className="w-full md:w-1/2 h-48 md:h-full relative">
-                    <img
-                        // Using helper function from api.js
-                        src={getImageUrl(campaign.banner_image, "https://via.placeholder.com/800x600?text=Offer")}
-                        alt={campaign.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1595475207225-428b62bda831?q=80&w=800&auto=format&fit=crop" }}
-                        onClick={() => {
-                            if (isCampaignActive) {
-                                navigate(`/campaign/${campaign.slug}`);
-                            } else {
-                                navigate(`/product/${product.slug}`);
-                            }
-                        }}
+                {/* Title - Bold & Balanced */}
+                <h2 className="text-2xl md:text-4xl font-serif font-black text-[#064E3B] mb-2 leading-tight drop-shadow-sm">
+                    {campaign.name}
+                </h2>
 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#FFF8F0] via-transparent to-transparent md:bg-gradient-to-r md:from-[#FFF8F0] md:via-transparent md:to-transparent"></div>
+                {/* Subtitle - Readable */}
+                <div className="text-gray-700 mb-6 text-sm md:text-lg font-semibold max-w-md">
+                   {campaign.subtitle}
                 </div>
+
+                {/* 🔥 Standard Timer UI - More Visible */}
+                <div className="flex gap-3 mb-8">
+                    {[
+                        { label: 'Days', val: timeLeft.days },
+                        { label: 'Hours', val: timeLeft.hours },
+                        { label: 'Mins', val: timeLeft.minutes },
+                        { label: 'Secs', val: timeLeft.seconds }
+                    ].map((item) => (
+                        <div key={item.label} className="text-center">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-white/95 backdrop-blur-sm border-2 border-[#064E3B]/5 rounded-2xl flex items-center justify-center text-lg md:text-2xl font-black text-[#064E3B] shadow-lg">
+                                {item.val.toString().padStart(2, '0')}
+                            </div>
+                            <span className="text-[9px] md:text-[10px] text-[#064E3B] mt-2 block uppercase font-black tracking-widest">{item.label}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Action Button - Premium Feel */}
+                <button
+                    onClick={handleGrabDeal}
+                    className="bg-[#064E3B] hover:bg-[#053d2e] text-white px-8 py-3 rounded-2xl text-sm font-black shadow-xl transition-all flex items-center gap-3 group active:scale-95"
+                >
+                    GRAB THIS DEAL <MdArrowForward size={18} className="group-hover:translate-x-2 transition-transform" />
+                </button>
             </div>
         </section>
     );

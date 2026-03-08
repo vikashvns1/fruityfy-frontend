@@ -212,7 +212,7 @@ const handleBuyNow = () => {
                                 <span className="text-xs font-bold uppercase tracking-widest text-green-600 bg-green-50 px-2 py-1 rounded">Fresh {product.category_name}</span>
                                 {product.is_featured === 1 && (
                                     <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] font-bold border border-blue-100 uppercase tracking-wider">
-                                        <ShieldCheck size={12} /> Fruityfy Assured
+                                        <ShieldCheck size={12} /> Fruitify Assured
                                     </span>
                                 )}
                             </div>

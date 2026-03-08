@@ -74,7 +74,7 @@ const BrandStory = () => {
                                 fontFamily: '"Brush Script MT", "Pacifico", cursive',
                             }}
                         >
-                            Fruityfy Team
+                            Fruitify Team
                         </p>
 
                         <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">

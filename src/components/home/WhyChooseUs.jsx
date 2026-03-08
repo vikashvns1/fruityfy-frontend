@@ -39,7 +39,7 @@ const WhyChooseUs = () => {
                         Our Promise
                     </span>
                     <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#064E3B] mt-2">
-                        Why Customers Love Fruityfy
+                        Why Customers Love Fruitify
                     </h2>
                     <p className="text-gray-600 mt-3 max-w-2xl mx-auto">
                         We go the extra mile to deliver freshness, quality and trust in every order.

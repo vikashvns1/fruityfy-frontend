@@ -64,18 +64,51 @@ const Cart = () => {
         toast.info("Coupon removed");
     };
 
+    // const handleCheckout = () => {
+    //     if (user) {
+    //         navigate('/checkout', {
+    //             state: {
+    //                 discount: discount,
+    //                 couponCode: appliedCoupon,
+    //                 finalTotal: finalTotal
+    //             }
+    //         });
+    //     } else {
+    //         toast.error("Please login to complete your order");
+    //         navigate('/login', { state: { from: '/checkout' } });
+    //     }
+    // };/
+
     const handleCheckout = () => {
         if (user) {
+            // ⭐ Sabse zaroori badlav: Weekly Box ka data map karna
+            const itemsWithBundleInfo = cartItems.map(item => ({
+                ...item,
+                // Agar ye weekly box hai (jisme weekly_box_id hai), 
+                // toh product_id ko null rakhein aur weekly_box_id bhejein
+                product_id: item.weekly_box_id ? null : (item.product_id || item.id),
+                weekly_box_id: item.weekly_box_id || null,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                // Bundle contents ko bhi aage bhejein taaki checkout summary mein dikhe
+                bundle_items: item.bundle_items || null
+            }));
+
             navigate('/checkout', {
                 state: {
                     discount: discount,
                     couponCode: appliedCoupon,
-                    finalTotal: finalTotal
+                    finalTotal: finalTotal,
+                    // ⭐ Naya mapped array bhej rahe hain
+                    items: itemsWithBundleInfo,
+                    subTotal: subTotal,
+                    deliveryFee: deliveryFee
                 }
             });
         } else {
             toast.error("Please login to complete your order");
-            navigate('/login', { state: { from: '/checkout' } });
+            navigate('/login', { state: { from: '/cart' } });
         }
     };
 
@@ -106,13 +139,13 @@ const Cart = () => {
                     {/* LEFT: Items List Section */}
                     <div className="flex-1 space-y-4">
                         {console.log("Cart Items:", cartItems)} {/* Debugging Log */}
-                       { cartItems.map((item) => (
+                        {cartItems.map((item) => (
                             <div key={item.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex gap-4 items-center">
 
                                 {/* Image Section */}
                                 <div className="w-20 h-20 bg-gray-50 rounded-md border border-gray-200 p-2 flex-shrink-0 relative">
                                     <img
-                                        src={getImageUrl(item.media_url || item.image_url, "https://cdn-icons-png.flaticon.com/512/2748/2748558.png")}
+                                        src={getImageUrl(item.media_url || item.image_url || item.image, "https://cdn-icons-png.flaticon.com/512/2748/2748558.png")}
                                         alt={item.name}
                                         className="w-full h-full object-contain mix-blend-multiply"
                                     />
@@ -127,7 +160,7 @@ const Cart = () => {
                                 <div className="flex-1">
                                     <h3 className="font-bold text-gray-800 text-sm md:text-base line-clamp-1">{item.name}</h3>
 
-                                    {/* ⭐ CUSTOM RECIPE SUMMARY: Agar product_id 81 hai toh details dikhao */}
+                                    {/* ⭐ 1. CUSTOM RECIPE SUMMARY (Ingredients) */}
                                     {item.is_custom && item.configuration ? (
                                         <div className="mt-1 bg-green-50/50 p-2 rounded border border-green-100/50">
                                             <p className="text-[9px] font-black text-[#064e3b] uppercase tracking-widest mb-1 flex items-center gap-1">
@@ -141,12 +174,33 @@ const Cart = () => {
                                                 ))}
                                             </div>
                                         </div>
+                                    ) : item.weekly_box_id && item.bundle_items ? (
+                                        /* ⭐ 2. BUNDLE SUMMARY: Basket ke andar ke items dikhane ke liye */
+                                        <div className="mt-1 bg-orange-50/50 p-2 rounded border border-orange-100/50">
+                                            <p className="text-[9px] font-black text-[#854d0e] uppercase tracking-widest mb-1 flex items-center gap-1">
+                                                📦 Basket Contents:
+                                            </p>
+                                            <div className="flex flex-wrap gap-x-3 gap-y-1">
+                                                {item.bundle_items && item.bundle_items.length > 0 ? (
+                                                    item.bundle_items.map((prod, i) => (
+                                                        <span key={prod.id || i} className="text-[10px] text-gray-600 font-medium italic">
+                                                            • {prod.name} ({prod.quantity} {prod.unit})
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-[10px] text-gray-400 italic">No items found in this bundle</span>
+                                                )}
+                                            </div>
+                                        </div>
                                     ) : (
+                                        /* 3. NORMAL PRODUCT UNIT */
                                         <p className="text-xs text-gray-500 mb-1">{item.unit}</p>
                                     )}
 
                                     <div className="flex items-center gap-2 mt-2">
-                                        <span className="font-bold text-[#15803d]">{formatPrice(item.final_price || item.price)}</span>
+                                        <span className="font-bold text-[#15803d]">
+                                            {formatPrice(item.final_price || item.price)}
+                                        </span>
                                     </div>
                                 </div>
 

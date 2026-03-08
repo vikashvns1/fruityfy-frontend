@@ -20,7 +20,7 @@ const InstagramFeed = () => {
                         <FaInstagram size={24} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-serif font-bold leading-none">@Fruityfy_Official</h2>
+                        <h2 className="text-xl font-serif font-bold leading-none">@Fruitify_Official</h2>
                         <p className="text-xs text-gray-500 mt-1">Follow us for fresh updates</p>
                     </div>
                 </div>

@@ -312,8 +312,8 @@ export const fetchActiveCampaign = async () => {
     try {
         const res = await api.get('/campaigns');
         if (res.data.success && res.data.data.length > 0) {
-            // Find first active campaign
-            return res.data.data.find(c => c.is_active === 1) || null;
+            // Find first active and featured campaign
+            return res.data.data.find(c => c.is_active === 1 && c.is_featured === 1) || null;
         }
         return null;
     } catch (error) {
@@ -373,6 +373,16 @@ export const getUserAddressesApi = async () => {
         return response.data;
     } catch (error) {
         return { success: false, message: error.message };
+    }
+};
+
+export const fetchGreetings = async (params = {}) => {
+    try {
+        const response = await api.get('/greetings', { params });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching greetings:", error);
+        return { success: false, data: [] };
     }
 };
 

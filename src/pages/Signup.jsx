@@ -27,7 +27,7 @@ const Signup = () => {
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
-            <p className="text-gray-500 mt-2">Join Fruityfy for fresh updates</p>
+            <p className="text-gray-500 mt-2">Join Fruitify for fresh updates</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

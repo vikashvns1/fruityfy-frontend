@@ -112,7 +112,7 @@ const CustomLab = () => {
 
         try {
             // A. Grid ke liye save karo
-            localStorage.setItem('fruityfy_custom_mix', JSON.stringify({
+            localStorage.setItem('fruitify_custom_mix', JSON.stringify({
                 ...customCartItem,
                 ingredients: selections,
                 date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
