@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { SettingsProvider } from './context/SettingsContext';
@@ -26,14 +28,36 @@ import BestSeller from './pages/BestSeller';
 import JuiceBuilder from './pages/JuiceBuilder';
 import CustomLab from './pages/CustomLab';
 import OfferPage from './pages/OfferPage';
+import About from './pages/About';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import Contact from './pages/Contact';
+import ShippingPolicy from './pages/ShippingPolicy';
 
 function App() {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    const currentLang = i18n.language;
+    const dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+
+    document.documentElement.dir = dir;
+    document.documentElement.lang = currentLang;
+
+    if (currentLang === 'ar') {
+      document.body.classList.add('arabic-font');
+    } else {
+      document.body.classList.remove('arabic-font');
+    }
+  }, [i18n.language]);
   return (
     <SettingsProvider>
       <CartProvider>
         <Router>
-          <div className="flex flex-col min-h-screen bg-gray-50 font-sans text-gray-900 relative">
-
+          <div
+            className={`flex flex-col min-h-screen bg-gray-50 font-sans text-gray-900 relative`}
+            dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}
+          >
             <Navbar />
 
             <main className="flex-1">
@@ -57,6 +81,11 @@ function App() {
                 <Route path="/juice-builder/:id" element={<JuiceBuilder />} />
                 <Route path="/juice-builder/custom" element={<CustomLab />} />
                 <Route path="/offers" element={<OfferPage />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/shipping-policy" element={<ShippingPolicy />} />
               </Routes>
             </main>
 
@@ -64,8 +93,7 @@ function App() {
 
             {/* Add Floating Buttons & Toast */}
             <FloatingButtons />
-            <ToastContainer position="bottom-right" autoClose={3000} />
-
+            <ToastContainer position={i18n.language === 'ar' ? "bottom-left" : "bottom-right"} autoClose={3000} />
           </div>
         </Router>
       </CartProvider>
