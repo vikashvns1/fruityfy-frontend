@@ -222,7 +222,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getWeeklyBoxes, getWeeklyBoxBySlug } from "../services/api";
+import { getWeeklyBoxes, getWeeklyBoxBySlug,getImageUrl } from "../services/api";
 import WeeklyBoxSidebar from "../components/weeklyBoxes/WeeklyBoxSidebar";
 import { MdAdd, MdRemove, MdShoppingCart, MdVerified, MdStars } from "react-icons/md";
 import { toast } from 'react-toastify';
@@ -232,7 +232,7 @@ import { useTranslation } from 'react-i18next'; // 1. Added i18n import
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 
-const IMAGE_BASE = "http://localhost:5000";
+const IMAGE_BASE = import.meta.env.VITE_API_BASE_URL|| "http://localhost:5000";
 
 const WeeklyBoxLanding = () => {
   const { slug } = useParams();
@@ -302,7 +302,7 @@ const WeeklyBoxLanding = () => {
         {/* BANNER SECTION */}
         <div className="relative mb-6 group">
           <img
-            src={activeBox.image ? IMAGE_BASE + activeBox.image : "/placeholder/weekly-box.jpg"}
+            src={activeBox.image ? getImageUrl(activeBox.image) : IMAGE_BASE + "/placeholder/weekly-box.jpg"}
             className="w-full h-[260px] object-cover rounded-3xl shadow-lg transition-transform duration-700 group-hover:scale-[1.01]"
             alt={activeBox.title}
           />

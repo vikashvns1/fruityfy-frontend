@@ -140,15 +140,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { fetchOccasions, getOccasionBySlug } from "../services/api";
+import { fetchOccasions, getOccasionBySlug,getImageUrl } from "../services/api";
 import OccasionSidebar from "../components/occasions/OccasionSidebar";
 import ProductCard from "../components/shared/ProductCard";
 import { useTranslation } from "react-i18next"; // 1. Added i18n import
-
-const IMAGE_BASE = "http://localhost:5000";
-
-const getImageUrl = (img) =>
-  img ? `${IMAGE_BASE}${img}` : "/placeholder-hero.jpg";
 
 const OccasionLanding = () => {
   const { slug } = useParams();

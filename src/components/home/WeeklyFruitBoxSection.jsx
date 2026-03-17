@@ -216,7 +216,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../services/api";
+import api , {getImageUrl} from "../../services/api";
 
 // Icons & Toasts
 import { MdAdd, MdRemove, MdShoppingCart } from "react-icons/md";
@@ -227,8 +227,6 @@ import { toast } from 'react-toastify';
 import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useTranslation } from 'react-i18next'; // 1. Added i18n import
-
-const IMAGE_BASE = "http://localhost:5000";
 
 const FruitBundleSection = () => {
   const navigate = useNavigate();
@@ -345,7 +343,7 @@ const FruitBundleSection = () => {
                 {/* Image Section */}
                 <div className="relative w-full h-56 bg-cream/30 overflow-hidden">
                     <img 
-                        src={box.image ? IMAGE_BASE + box.image : "/placeholder/weekly-box.jpg"} 
+                        src={box.image ? getImageUrl(box.image) : "/placeholder/weekly-box.jpg"} 
                         alt={isRTL ? (box.title_ar || box.title) : box.title} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                     />

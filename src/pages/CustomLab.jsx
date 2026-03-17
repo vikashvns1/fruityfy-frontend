@@ -259,6 +259,7 @@ import { toast } from 'react-toastify';
 import { useCart } from '../context/CartContext';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext'; // <--- 1. Settings import kiya
+import { getImageUrl } from '../services/api';
 
 const CustomLab = () => {
     const navigate = useNavigate();
@@ -437,7 +438,7 @@ const CustomLab = () => {
                             return (
                                 <div key={item.id} className={`p-6 rounded-[2.5rem] border transition-all duration-300 flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''} ${sel?.qty > 0 ? 'bg-white/10 border-[#FACC15]/50' : 'bg-white/5 border-white/10 hover:bg-white/[0.07]'}`}>
                                     <div className="w-16 h-16 bg-black/40 rounded-2xl overflow-hidden p-2 border border-white/5 flex-shrink-0">
-                                        <img src={`http://localhost:5000${item.image_url}`} className="w-full h-full object-contain" alt={item.name} />
+                                        <img src={getImageUrl(item.image_url)} className="w-full h-full object-contain" alt={item.name} />
                                     </div>
                                     <div className="flex-1">
                                         <h4 className={`font-bold text-white text-sm mb-2 ${isRTL ? 'text-right' : ''}`}>{isRTL ? (item.name_ar || item.name) : item.name}</h4>

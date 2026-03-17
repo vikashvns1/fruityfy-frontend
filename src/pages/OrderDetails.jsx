@@ -731,8 +731,8 @@ const OrderDetails = () => {
                                                         {item.my_review_images && item.my_review_images.length > 0 && (
                                                             <div className={`flex flex-wrap gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                                                 {item.my_review_images.map((path, index) => (
-                                                                    <div key={index} className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform cursor-pointer" onClick={() => window.open(`http://localhost:5000${path}`, '_blank')}>
-                                                                        <img src={`http://localhost:5000${path}`} alt="Review" className="w-full h-full object-cover" />
+                                                                    <div key={index} className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform cursor-pointer" onClick={() => window.open(getImageUrl(path), '_blank')}>
+                                                                        <img src={getImageUrl(path)} alt="Review" className="w-full h-full object-cover" />
                                                                     </div>
                                                                 ))}
                                                             </div>

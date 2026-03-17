@@ -343,7 +343,7 @@
 // export default OfferPage;
 
 import { useEffect, useState } from 'react';
-import api, { fetchProducts } from '../services/api';
+import api, { fetchProducts,getImageUrl  } from '../services/api';
 import { MdContentCopy, MdFlashOn, MdCampaign } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
@@ -478,7 +478,7 @@ const OfferPage = () => {
                                 className="group relative block h-[280px] md:h-[320px] w-full overflow-hidden rounded-[30px] shadow-lg transition-all duration-500 hover:shadow-2xl border border-gray-100"
                             >
                                 <img
-                                    src={`http://localhost:5000${camp.banner_image}`}
+                                    src={getImageUrl(camp.banner_image)}
                                     className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
                                     alt={isRTL ? (camp.name_ar || camp.name) : camp.name}
                                 />

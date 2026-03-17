@@ -1266,7 +1266,7 @@ const JuiceBuilder = () => {
                                             return (
                                                 <div key={item.id} className={`p-6 rounded-[2.5rem] transition-all duration-500 border-2 ${active?.qty > 0 ? 'bg-white border-[#064E3B] shadow-xl' : 'bg-white/50 border-transparent hover:bg-white hover:shadow-md'}`}>
                                                     <div className={`flex gap-5 mb-6 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
-                                                        <div className="w-20 h-20 bg-gray-50 rounded-3xl overflow-hidden p-2"><img src={`http://localhost:5000${item.image_url}`} className="w-full h-full object-contain" alt={item.name} /></div>
+                                                        <div className="w-20 h-20 bg-gray-50 rounded-3xl overflow-hidden p-2"><img src={getImageUrl(item.image_url)} className="w-full h-full object-contain" alt={item.name} /></div>
                                                         <div className="flex-1">
                                                             <div className={`flex justify-between items-start ${isRTL ? 'flex-row-reverse' : ''}`}>
                                                                 <h4 className="font-bold text-[#064E3B] text-lg">{isRTL ? (item.name_ar || item.name) : item.name}</h4>

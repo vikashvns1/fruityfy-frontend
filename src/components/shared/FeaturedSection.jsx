@@ -121,7 +121,7 @@
 import { useEffect, useState } from 'react';
 import ProductCard from '../shared/ProductCard';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
-import { fetchProducts, fetchCategories } from '../../services/api'; 
+import { fetchProducts, fetchCategories,getImageUrl } from '../../services/api'; 
 import { useTranslation } from 'react-i18next'; // 1. Import i18n hook
 
 const FeaturedSection = () => {
@@ -186,9 +186,7 @@ const FeaturedSection = () => {
           {categories.length > 0 ? (
             categories.map((cat, idx) => {
               // Construct Image URL
-              const imgUrl = cat.image_url 
-                ? (cat.image_url.startsWith('http') ? cat.image_url : `http://localhost:5000${cat.image_url}`)
-                : "https://cdn-icons-png.flaticon.com/512/1625/1625048.png"; 
+              const imgUrl =  getImageUrl(cat.image_url, "https://cdn-icons-png.flaticon.com/512/1625/1625048.png")
 
               const bgColor = bgColors[idx % bgColors.length];
 

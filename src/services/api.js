@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 // 1. BASE_URL ko export karein taaki components me images ke liye use ho sake
-export const BASE_URL = "http://localhost:5000"; 
+//export const BASE_URL = "http://localhost:5000"; 
+// Vite variables ko access karne ka sahi tarika
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+
 
 // 2. HELPER FUNCTION: Get Image URL
 export const getImageUrl = (path, defaultUrl = "") => {
@@ -18,7 +22,9 @@ export const getImageUrl = (path, defaultUrl = "") => {
 };
 
 // 2. API_URL define karein (BASE_URL + /api)
-const API_URL = `${BASE_URL}/api`;
+//const API_URL = `${BASE_URL}/api`;
+const API_URL = import.meta.env.VITE_API_URL || `${BASE_URL}/api`;
+console.log("Connecting to API at:", API_URL); // Debugging ke liye
 
 // 3. Axios Instance banayein (Sirf valid config ke sath)
 const api = axios.create({

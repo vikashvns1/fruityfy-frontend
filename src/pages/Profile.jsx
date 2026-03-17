@@ -503,7 +503,7 @@ const Profile = () => {
                                             <div className={`flex gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                                 <div className="bg-gray-100 w-16 h-16 rounded flex items-center justify-center overflow-hidden border">
                                                     {order.thumbnail ? (
-                                                        <img src={`http://localhost:5000${order.thumbnail}`} alt="Product" className="w-full h-full object-cover mix-blend-multiply"/>
+                                                        <img src={getImageUrl(order.thumbnail)} alt="Product" className="w-full h-full object-cover mix-blend-multiply"/>
                                                     ) : <Package className="text-gray-400" />}
                                                 </div>
                                                 <div>
