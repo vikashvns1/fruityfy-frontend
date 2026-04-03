@@ -297,12 +297,14 @@ import { fetchUserProfile, fetchMyOrders, updateUserProfile, getImageUrl } from 
 import { User, Package, Settings, LogOut, Camera, ArrowRight, ArrowLeft, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next'; // 2. Added translation hook
 import toast from 'react-hot-toast';
+import { useCart } from '../context/CartContext';
 
 const Profile = () => {
     const { logout, setUser } = useAuth();
+    const { clearCart } = useCart();
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
-    const { formatPrice } = useSettings(); // 3. Fixed ReferenceError by initializing hook
+    const { formatPrice } = useSettings();
 
     const isRTL = i18n.language === 'ar';
 
@@ -323,6 +325,10 @@ const Profile = () => {
     });
     const [previewImage, setPreviewImage] = useState(null);
 
+    const handleLogout = () => {
+        clearCart();   // 🔥 pehle cart clear
+        logout();      // fir logout
+    };
     // Initial Data Fetch
     useEffect(() => {
         loadDashboard();
@@ -369,7 +375,7 @@ const Profile = () => {
 
         const res = await updateUserProfile(data);
         if (res.success) {
-setUser(res.data);
+            setUser(res.data);
             setUserData(res.data);
             setFormData(prev => ({ ...prev, password: '' }));
             localStorage.setItem('user', JSON.stringify(res.data));
@@ -422,7 +428,7 @@ setUser(res.data);
                             <button onClick={() => setActiveTab('settings')} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isRTL ? 'flex-row-reverse' : ''} ${activeTab === 'settings' ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>
                                 <Settings size={20} /> {isRTL ? 'الإعدادات' : 'Settings'}
                             </button>
-                            <button onClick={logout} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 transition-colors mt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                            <button onClick={handleLogout} className={`flex items-center gap-3 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 transition-colors mt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                 <LogOut size={20} /> {isRTL ? 'تسجيل الخروج' : 'Logout'}
                             </button>
                         </div>

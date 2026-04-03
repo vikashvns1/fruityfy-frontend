@@ -1,13 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { loginApi, registerApi } from '../services/api'; 
-import { useCart } from './CartContext';
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { clearCart } = useCart();
+
   // Check if user is logged in on refresh
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -57,7 +57,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    clearCart();
     toast.success("Logged out successfully");
     window.location.href = "/login"; 
   };
