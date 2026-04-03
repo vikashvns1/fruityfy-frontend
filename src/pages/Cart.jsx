@@ -325,7 +325,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Minus, Plus, Trash2, ArrowRight, ArrowLeft, ShoppingBag, Info, ShieldCheck, Tag, X } from 'lucide-react';
-import { MdOutlineScience } from 'react-icons/md';
+import { MdOutlineScience ,MdSettings} from 'react-icons/md';
 import { useTranslation } from 'react-i18next'; // 1. Import i18n hook
 import toast from 'react-hot-toast';
 
@@ -469,17 +469,36 @@ const Cart = () => {
 
                                     {/* 1. CUSTOM RECIPE SUMMARY */}
                                     {item.is_custom && item.configuration ? (
-                                        <div className="mt-1 bg-green-50/50 p-2 rounded border border-green-100/50">
-                                            <p className={`text-[9px] font-black text-[#064e3b] uppercase tracking-widest mb-1 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                                <Info size={10} /> {isRTL ? 'مزيج جزيئي:' : 'Molecular Mix:'}
-                                            </p>
-                                            <div className={`flex flex-wrap gap-x-3 gap-y-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                                {item.configuration.ingredients.map((ing, i) => (
-                                                    <span key={i} className="text-[10px] text-gray-600 font-medium italic">
-                                                        • {isRTL ? (ing.name_ar || ing.name) : ing.name} ({ing.qty}{ing.unit})
-                                                    </span>
-                                                ))}
+                                        <div className="mt-1 space-y-2">
+                                            {/* Ingredients Section */}
+                                            <div className="bg-green-50/50 p-2 rounded border border-green-100/50">
+                                                <p className={`text-[9px] font-black text-[#064e3b] uppercase tracking-widest mb-1 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                    <MdOutlineScience size={10} /> {isRTL ? 'مزيج المكونات:' : 'Ingredients Mix:'}
+                                                </p>
+                                                <div className={`flex flex-wrap gap-x-3 gap-y-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                    {item.configuration.ingredients.map((ing, i) => (
+                                                        <span key={i} className="text-[10px] text-gray-600 font-medium italic">
+                                                            • {isRTL ? (ing.name_ar || ing.name) : ing.name} ({ing.qty}{ing.unit})
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
+
+                                            {/* 2. ADDED: SELECTED OPTIONS (Glass, Sweetness, Packaging etc.) */}
+                                            {item.configuration.selected_options_details && item.configuration.selected_options_details.length > 0 && (
+                                                <div className="bg-blue-50/50 p-2 rounded border border-blue-100/50">
+                                                    <p className={`text-[9px] font-black text-[#1e40af] uppercase tracking-widest mb-1 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                        <MdSettings size={10} /> {isRTL ? 'التفضيلات المختارة:' : 'Selected Preferences:'}
+                                                    </p>
+                                                    <div className={`flex flex-wrap gap-x-3 gap-y-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                        {item.configuration.selected_options_details.map((opt, i) => (
+                                                            <span key={i} className="text-[10px] text-blue-700 font-bold italic bg-white/50 px-2 py-0.5 rounded shadow-sm border border-blue-100">
+                                                                {opt.option_name}: <span className="text-blue-900">{opt.value_name}</span>
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     ) : item.weekly_box_id && item.bundle_items ? (
                                         /* 2. BUNDLE SUMMARY */

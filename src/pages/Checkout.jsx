@@ -393,7 +393,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
-import { placeOrderApi, verifyPaymentApi, getUserAddressesApi, fetchGreetings } from '../services/api'; 
+import { placeOrderApi, verifyPaymentApi, getUserAddressesApi, fetchGreetings } from '../services/api';
 import { ArrowLeft, ArrowRight, MapPin, CreditCard, Truck, CheckCircle, ShieldCheck, Loader2, Tag, X, Gift, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next'; // 1. Added i18n import
 import { MdOutlineScience } from 'react-icons/md';
@@ -467,9 +467,9 @@ const Checkout = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({ 
-      ...formData, 
-      [name]: type === 'checkbox' ? checked : value 
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value
     });
   };
 
@@ -610,9 +610,9 @@ const Checkout = () => {
                 <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${isRTL ? 'md:flex-row-reverse' : ''}`}>
                   <div>
                     <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{t('checkout.gift_msg_label')}</label>
-                    <select 
+                    <select
                       className={`w-full mt-1 p-3 bg-gray-50 border rounded-xl text-sm ${isRTL ? 'text-right' : 'text-left'}`}
-                      onChange={(e) => setFormData({...formData, giftMessage: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, giftMessage: e.target.value })}
                     >
                       <option value="">-- {isRTL ? 'اختر رسالة جاهزة' : 'Choose Predefined'} --</option>
                       {predefinedMessages.map(msg => (
@@ -690,17 +690,37 @@ const Checkout = () => {
                   )}
 
                   {item.is_custom && item.configuration && (
-                    <div className="mt-1 bg-green-50/50 p-2 rounded border border-green-100/50">
-                      <p className={`text-[9px] font-black text-[#064e3b] uppercase tracking-widest mb-1 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        🧪 {isRTL ? 'الوصفة:' : 'Recipe:'}
-                      </p>
-                      <div className={`flex flex-wrap gap-x-2 gap-y-0.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        {item.configuration.ingredients.map((ing, i) => (
-                          <span key={i} className="text-[9px] text-gray-600 italic">
-                            • {isRTL ? (ing.name_ar || ing.name) : ing.name} ({ing.qty}{ing.unit})
-                          </span>
-                        ))}
+                    <div className="mt-1 space-y-1">
+                      {/* Ingredients Section */}
+                      <div className="bg-green-50/50 p-2 rounded border border-green-100/50">
+                        <p className={`text-[9px] font-black text-[#064e3b] uppercase tracking-widest mb-1 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          🧪 {isRTL ? 'الوصفة:' : 'Recipe:'}
+                        </p>
+                        <div className={`flex flex-wrap gap-x-2 gap-y-0.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          {item.configuration.ingredients.map((ing, i) => (
+                            <span key={i} className="text-[9px] text-gray-600 italic">
+                              • {isRTL ? (ing.name_ar || ing.name) : ing.name} ({ing.qty}{ing.unit})
+                            </span>
+                          ))}
+                        </div>
                       </div>
+
+                      {/* Naya Options Section (Glass, Sweetness etc.) */}
+                      {item.configuration.selected_options_details && item.configuration.selected_options_details.length > 0 && (
+                        <div className="bg-blue-50/30 p-2 rounded border border-blue-100/30">
+                          <p className={`text-[9px] font-black text-[#1e40af] uppercase tracking-widest mb-1 flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                            ⚙️ {isRTL ? 'التفضيلات:' : 'Specs:'}
+                          </p>
+                          <div className={`flex flex-wrap gap-x-2 gap-y-0.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                            {item.configuration.selected_options_details.map((opt, i) => (
+                              <span key={i} className="text-[9px] text-blue-700 font-bold">
+                                {opt.option_name}: <span className="text-blue-900">{opt.value_name}</span>
+                                {i !== item.configuration.selected_options_details.length - 1 && " | "}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

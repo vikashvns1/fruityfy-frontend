@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import {
     FaFacebookF, FaInstagram, FaTwitter, FaWhatsapp,
-    FaPhoneAlt, FaMapMarkerAlt, FaEnvelope, FaChevronRight, FaChevronLeft
+    FaPhoneAlt, FaMapMarkerAlt, FaChevronRight, FaChevronLeft
 } from 'react-icons/fa';
 import { FaCcVisa, FaCcMastercard, FaCcApplePay, FaCcAmex } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import logoImg from '../../assets/logo.png';
 
 const Footer = () => {
     const { t, i18n } = useTranslation();
@@ -27,97 +28,114 @@ const Footer = () => {
     ];
 
     return (
-        <footer className={`bg-[#064E3B] text-white pt-16 pb-8 font-sans text-sm relative border-t-4 border-yellow-400 overflow-hidden`}>
-            {/* Subtle Texture */}
-            <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none"
-                style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-            </div>
+        <footer className="bg-[#064E3B] text-white pt-12 pb-8 border-t-4 border-yellow-400">
 
-            <div className={`w-[92%] max-w-[1280px] mx-auto relative z-10`}>
-                <div className={`flex flex-col md:flex-row gap-10 md:gap-4 justify-between ${isRTL ? 'md:flex-row-reverse text-right' : 'text-left'}`}>
-                    
-                    {/* 1. Brand Info (Logo Section) */}
-                    <div className="md:w-[25%] space-y-5">
-                        <h2 className={`text-3xl font-serif font-bold text-yellow-400 flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                            <span>🍏</span> Fruitify.
-                        </h2>
-                        <p className={`text-green-100 leading-relaxed opacity-90 ${isRTL ? 'pl-4' : 'pr-4'}`}>
+            <div className="w-[92%] max-w-[1280px] mx-auto">
+
+                {/* MAIN GRID */}
+                <div className={`grid grid-cols-1 md:grid-cols-4 gap-10 ${isRTL ? 'text-right' : 'text-left'}`}>
+
+                    {/* LOGO SECTION */}
+                    <div className="space-y-4">
+                        <Link to="/">
+                            <img
+                                src={logoImg}
+                                alt="Fruitify Logo"
+                                className="h-12 md:h-16 w-auto object-contain"
+                            />
+                        </Link>
+
+                        <p className="text-green-100 text-sm leading-relaxed opacity-80">
                             {t('footer.about')}
                         </p>
-                        <div className={`flex gap-3 ${isRTL ? 'flex-row-reverse justify-start' : ''}`}>
+
+                        <div className="flex gap-3">
                             {[FaFacebookF, FaInstagram, FaTwitter].map((Icon, i) => (
-                                <a key={i} href="#" className="w-9 h-9 border border-green-600 bg-[#053d2e] hover:bg-yellow-400 hover:text-[#064E3B] rounded-lg flex items-center justify-center transition-all">
-                                    <Icon size={16} />
-                                </a>
+                                <div
+                                    key={i}
+                                    className="w-9 h-9 bg-white/10 hover:bg-yellow-400 hover:text-[#064E3B] rounded-lg flex items-center justify-center cursor-pointer transition"
+                                >
+                                    <Icon size={14} />
+                                </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* 2. Shop Categories */}
-                    <div className="md:w-[20%]">
-                        <h3 className="font-bold text-yellow-400 mb-6 uppercase text-xs tracking-widest">{t('footer.shop_title')}</h3>
-                        <ul className="space-y-3">
+                    {/* SHOP */}
+                    <div>
+                        <h3 className="text-yellow-400 font-semibold mb-4 text-sm uppercase">
+                            {t('footer.shop_title')}
+                        </h3>
+                        <ul className="space-y-2 text-sm">
                             {shopLinks.map((link, i) => (
                                 <li key={i}>
-                                    <Link to={link.path} className={`text-green-100 hover:text-yellow-400 transition-all flex items-center gap-2 group ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                        {isRTL ? <FaChevronLeft size={10} className="text-yellow-400" /> : <FaChevronRight size={10} className="text-yellow-400" />}
-                                        <span className="group-hover:translate-x-1 transition-transform">{link.name}</span>
+                                    <Link to={link.path} className="hover:text-yellow-400 flex items-center gap-2">
+                                        {isRTL ? <FaChevronLeft size={10}/> : <FaChevronRight size={10}/>}
+                                        {link.name}
                                     </Link>
                                 </li>
                             ))}
                         </ul>
                     </div>
 
-                    {/* 3. Customer Care */}
-                    <div className="md:w-[20%]">
-                        <h3 className="font-bold text-yellow-400 mb-6 uppercase text-xs tracking-widest">{t('footer.care_title')}</h3>
-                        <ul className="space-y-3">
+                    {/* CUSTOMER CARE */}
+                    <div>
+                        <h3 className="text-yellow-400 font-semibold mb-4 text-sm uppercase">
+                            {t('footer.care_title')}
+                        </h3>
+                        <ul className="space-y-2 text-sm">
                             {supportLinks.map((link, i) => (
                                 <li key={i}>
-                                    <Link to={link.path} className={`text-green-100 hover:text-yellow-400 transition-all flex items-center gap-2 group ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                        {isRTL ? <FaChevronLeft size={10} className="text-yellow-400" /> : <FaChevronRight size={10} className="text-yellow-400" />}
-                                        <span className="group-hover:translate-x-1 transition-transform">{link.name}</span>
+                                    <Link to={link.path} className="hover:text-yellow-400 flex items-center gap-2">
+                                        {isRTL ? <FaChevronLeft size={10}/> : <FaChevronRight size={10}/>}
+                                        {link.name}
                                     </Link>
                                 </li>
                             ))}
                         </ul>
                     </div>
 
-                    {/* 4. Contact Info */}
-                    <div className="md:w-[25%] space-y-4">
-                        <h3 className="font-bold text-yellow-400 mb-6 uppercase text-xs tracking-widest">{t('footer.get_in_touch')}</h3>
-                        <ul className="space-y-4 text-green-100">
-                            <li className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-1"><FaMapMarkerAlt size={14} /></div>
-                                <span className="leading-relaxed flex-1">{t('footer.address')}</span>
-                            </li>
-                            <li className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0"><FaPhoneAlt size={14} /></div>
-                                <span className="font-semibold dir-ltr" style={{ direction: 'ltr' }}>+971 50 123 4567</span>
-                            </li>
-                            <li className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 hover:bg-[#25D366] transition-colors"><FaWhatsapp size={16} /></div>
-                                <a href="https://wa.me/971501234567" target="_blank" rel="noreferrer" className="hover:text-[#25D366]">{t('footer.whatsapp')}</a>
-                            </li>
-                        </ul>
-                    </div>
+                    {/* CONTACT */}
+                    <div className="space-y-4 text-sm">
+                        <h3 className="text-yellow-400 font-semibold mb-4 uppercase">
+                            {t('footer.get_in_touch')}
+                        </h3>
 
-                </div>
-            </div>
+                        <div className="flex gap-3">
+                            <FaMapMarkerAlt />
+                            <span>{t('footer.address')}</span>
+                        </div>
 
-            {/* Bottom Bar */}
-            <div className="border-t border-green-800/50 mt-12 pt-8 relative z-10">
-                <div className={`w-[92%] max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6 ${isRTL ? 'md:flex-row-reverse' : ''}`}>
-                    <p className="text-xs text-green-200/60">
-                        © 2026 <span className="text-yellow-400 font-bold">Fruitify</span>. {t('footer.rights')}
-                    </p>
-                    <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <span className="text-[10px] uppercase text-green-300 font-black tracking-widest">{t('footer.accept')}</span>
-                        <div className="flex gap-2 bg-white/5 p-2 rounded-xl border border-white/5" style={{ direction: 'ltr' }}>
-                            <FaCcVisa size={24} /> <FaCcMastercard size={24} /> <FaCcAmex size={24} /> <FaCcApplePay size={24} />
+                        <div className="flex gap-3">
+                            <FaPhoneAlt />
+                            <span>+971 50 123 4567</span>
+                        </div>
+
+                        <div className="flex gap-3 items-center">
+                            <FaWhatsapp />
+                            <span className="hover:text-[#25D366] cursor-pointer">
+                                {t('footer.whatsapp')}
+                            </span>
                         </div>
                     </div>
                 </div>
+
+                {/* BOTTOM BAR */}
+                <div className="border-t border-green-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+
+                    <p className="text-green-200/70">
+                        © 2026 <span className="text-yellow-400 font-semibold">Fruitify</span>. {t('footer.rights')}
+                    </p>
+
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs text-green-300">WE ACCEPT</span>
+                        <FaCcVisa size={22} />
+                        <FaCcMastercard size={22} />
+                        <FaCcAmex size={22} />
+                        <FaCcApplePay size={22} />
+                    </div>
+                </div>
+
             </div>
         </footer>
     );

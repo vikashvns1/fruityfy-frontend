@@ -392,4 +392,8 @@ export const fetchGreetings = async (params = {}) => {
     }
 };
 
+export const searchProducts = (query) => {
+  return api.get(`/products?q=${query}`);
+};
+
 export default api;

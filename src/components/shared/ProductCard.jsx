@@ -214,7 +214,7 @@
 // export default ProductCard;
 
 import { useNavigate } from 'react-router-dom';
-import { Star, Check, Plus, Tag } from 'lucide-react'; 
+import { Star, Check, Plus, Tag } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next'; // 1. Added i18n import
 
@@ -231,7 +231,7 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
   const { formatPrice } = useSettings();
   const { t, i18n } = useTranslation(); // 2. Initialize translation hook
   const [isAdded, setIsAdded] = useState(false);
-
+  const [qty, setQty] = useState(0);
   const isRTL = i18n.language === 'ar'; // Check for Arabic
 
   /* ================= PRICE & CAMPAIGN LOGIC (NO CHANGES) ================= */
@@ -243,7 +243,7 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
   let campaignBadgeText = null;
 
   if (campaign) {
-    originalPrice = basePrice; 
+    originalPrice = basePrice;
     if (campaign.discount_type === 'percentage') {
       finalPrice = basePrice - (basePrice * (Number(campaign.discount_value) / 100));
       campaignBadgeText = `${Math.round(campaign.discount_value)}% OFF`;
@@ -287,13 +287,26 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
       },
       1
     );
-
+    setQty(1);
     toast.success(`${isRTL ? (product.name_ar || product.name) : product.name} ${t('juice_builder.added_toast')}`, {
-        position: isRTL ? "bottom-left" : "bottom-right",
-        autoClose: 2000,
+      position: isRTL ? "bottom-left" : "bottom-right",
+      autoClose: 2000,
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1500);
+  };
+
+  const handleIncrease = (e) => {
+    e.stopPropagation();
+
+    setQty(prev => prev + 1);   // ✅ sirf state update
+    addToCart(product, 1);      // ✅ alag se call
+  };
+
+  const handleDecrease = (e) => {
+    e.stopPropagation();
+
+    setQty(prev => (prev > 1 ? prev - 1 : 0));
   };
 
   return (
@@ -312,9 +325,9 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
       <div className={`absolute top-3 ${isRTL ? 'right-3' : 'left-3'} z-10 flex flex-col gap-1.5`}>
         {/* 🔥 Campaign Specific Badge */}
         {campaign && (
-            <span className="bg-orange-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg animate-pulse">
-                <Tag size={10} className={isRTL ? 'rotate-90' : ''} /> {campaignBadgeText}
-            </span>
+          <span className="bg-orange-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg animate-pulse">
+            <Tag size={10} className={isRTL ? 'rotate-90' : ''} /> {campaignBadgeText}
+          </span>
         )}
 
         {product.is_new_arrival === 1 && (
@@ -343,9 +356,8 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
           <img
             src={getImageUrl(product.image_url)}
             alt={isRTL ? (product.name_ar || product.name) : product.name}
-            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${
-              isOutOfStock ? 'grayscale opacity-60' : ''
-            }`}
+            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${isOutOfStock ? 'grayscale opacity-60' : ''
+              }`}
           />
         </div>
 
@@ -393,7 +405,7 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
             </span>
           </div>
 
-          <button
+          {/* <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
             className={`
@@ -422,7 +434,42 @@ const ProductCard = ({ product, campaign = null, onWishlistChange }) => {
                 <span className="hidden md:inline text-xs font-bold">{t('juice_builder.add')}</span>
               </>
             )}
-          </button>
+          </button> */}
+
+          {qty === 0 ? (
+            <button
+              onClick={handleAddToCart}
+              disabled={isOutOfStock}
+              className={`
+      h-9 w-9 md:w-auto md:px-4 rounded-full
+      flex items-center justify-center gap-2
+      transition-all shadow-sm
+      ${isOutOfStock
+                  ? 'bg-gray-100 text-gray-400'
+                  : campaign
+                    ? 'bg-orange-600 text-white hover:bg-orange-700 hover:shadow-lg'
+                    : 'bg-primary text-white hover:bg-primaryLight hover:shadow-lg'
+                }
+    `}
+            >
+              <Plus size={18} strokeWidth={3} />
+              <span className="hidden md:inline text-xs font-bold">
+                {t('juice_builder.add')}
+              </span>
+            </button>
+          ) : (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className={`
+      h-9 px-3 rounded-full flex items-center gap-3 shadow-sm
+      ${campaign ? 'bg-orange-600 text-white' : 'bg-primary text-white'}
+    `}
+            >
+              <button onClick={handleDecrease} className="text-lg font-bold">-</button>
+              <span className="text-sm font-bold">{qty}</span>
+              <button onClick={handleIncrease} className="text-lg font-bold">+</button>
+            </div>
+          )}
         </div>
       </div>
     </div>

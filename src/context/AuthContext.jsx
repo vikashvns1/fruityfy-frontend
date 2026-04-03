@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
 
   // Login Function
   const login = async (email, password) => {
-    const res = await loginApi({ email, password });
+    const res = await loginApi({ email, password, role: 'customer' });
 
     if (res.success) {
       const { token, user } = res.data; // Extract from your backend response
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser,login, register, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

@@ -593,7 +593,7 @@
 //     }).then((result) => {
 //         if (result.isConfirmed) {
 //             localStorage.removeItem('fruitify_custom_mix');
-            
+
 //             // Ek chota sa success message dikhao
 //             Swal.fire({
 //                 title: 'Removed!',
@@ -967,9 +967,9 @@ const JuiceBuilder = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { addToCart } = useCart();
-    const { t, i18n } = useTranslation(); 
-    const { formatPrice } = useSettings(); // 3. Fixed formatPrice ReferenceError
-
+    const { t, i18n } = useTranslation();
+    const { formatPrice } = useSettings();
+    const [maxCapacity, setMaxCapacity] = useState(0);
     const isRTL = i18n.language === 'ar';
 
     const [data, setData] = useState(null);
@@ -1023,6 +1023,17 @@ const JuiceBuilder = () => {
             toast.error(isRTL ? "يرجى إضافة بعض المكونات أولاً!" : "Please add some ingredients first!");
             return;
         }
+
+        const selectedOptionsDetails = Object.keys(customOptions).map(optId => {
+            const option = data.custom_options.find(o => o.id === parseInt(optId));
+            const value = option?.values.find(v => v.id === customOptions[optId]);
+            return {
+                option_name: isRTL ? (option?.name_ar || option?.name) : option?.name,
+                value_name: isRTL ? (value?.name_ar || value?.name) : value?.name,
+                price: value?.price
+            };
+        });
+
         const productImage = data?.product?.image_url || data?.product?.media_url || "";
         const customJuice = {
             ...data.product,
@@ -1034,7 +1045,7 @@ const JuiceBuilder = () => {
             image_url: productImage,
             configuration: {
                 ingredients: selections,
-                options: customOptions,
+                selected_options_details: selectedOptionsDetails,
                 totals: totals
             }
         };
@@ -1048,22 +1059,76 @@ const JuiceBuilder = () => {
         navigate('/juice-builder');
     };
 
-    const handleQtyChange = (item, qty) => {
-        let newSelections = [...selections];
-        const idx = newSelections.findIndex(s => s.id === item.id);
-        const val = parseInt(qty);
-        if (val > 0) {
-            const entry = { id: item.id, name: item.name, qty: val, price: item.price, calories: item.calories, unit: item.unit,color_code: item.color_code };
-            if (idx > -1) newSelections[idx] = entry; else newSelections.push(entry);
-        } else { if (idx > -1) newSelections.splice(idx, 1); }
-        setSelections(newSelections);
-        updateCalculations(newSelections, customOptions);
-    };
+    // const handleQtyChange = (item, qty) => {
+    //     let newSelections = [...selections];
+    //     const idx = newSelections.findIndex(s => s.id === item.id);
+    //     const val = parseInt(qty);
+    //     if (val > 0) {
+    //         const entry = { id: item.id, name: item.name, qty: val, price: item.price, calories: item.calories, unit: item.unit, color_code: item.color_code };
+    //         if (idx > -1) newSelections[idx] = entry; else newSelections.push(entry);
+    //     } else { if (idx > -1) newSelections.splice(idx, 1); }
+    //     setSelections(newSelections);
+    //     updateCalculations(newSelections, customOptions);
+    // };
+
+    // const handleOptionSelect = (optId, valId) => {
+    //     const newOptions = { ...customOptions, [optId]: valId };
+    //     setCustomOptions(newOptions);
+    //     updateCalculations(selections, newOptions);
+    // };
 
     const handleOptionSelect = (optId, valId) => {
+        const option = data.custom_options.find(o => o.id === parseInt(optId));
+        const value = option?.values.find(v => v.id === valId);
+
+        // Agar option 'Glass Size' wala hai (Naam se check karein ya ID se)
+        if (option.name.toLowerCase().includes('glass')) {
+            const capacity = parseInt(value.health_tag); // Humne DB mein 300, 500 store kiya hai
+            setMaxCapacity(capacity);
+
+            // Validation: Agar user ne pehle se zyada fill kar diya hai aur ab chota glass le raha hai
+            if (totals.qty > capacity) {
+                toast.warning(isRTL ? "تم تجاوز سعة الكوب الجديد!" : "Current mix exceeds new glass capacity!");
+                // Optional: reset selections or trim them
+            }
+        }
+
         const newOptions = { ...customOptions, [optId]: valId };
         setCustomOptions(newOptions);
         updateCalculations(selections, newOptions);
+    };
+
+    const handleQtyChange = (item, qty) => {
+        if (maxCapacity === 0) {
+            toast.error(isRTL ? "يرجى اختيار حجم الكوب أولاً" : "Please select a glass size first!");
+            return;
+        }
+
+        const val = parseInt(qty);
+        const otherIngredientsQty = selections
+            .filter(s => s.id !== item.id)
+            .reduce((sum, s) => sum + s.qty, 0);
+
+        const newTotal = otherIngredientsQty + val;
+
+        if (newTotal > maxCapacity) {
+            // Bhai yahan block kar do!
+            const allowedQty = maxCapacity - otherIngredientsQty;
+            toast.error(isRTL ? `الكوب ممتلئ! يمكنك إضافة ${allowedQty} مل فقط` : `Glass full! You can only add ${allowedQty}ml more.`);
+            return;
+        }
+
+        // Baaki ka purana logic...
+        let newSelections = [...selections];
+        const idx = newSelections.findIndex(s => s.id === item.id);
+        if (val > 0) {
+            const entry = { ...item, qty: val };
+            if (idx > -1) newSelections[idx] = entry; else newSelections.push(entry);
+        } else {
+            if (idx > -1) newSelections.splice(idx, 1);
+        }
+        setSelections(newSelections);
+        updateCalculations(newSelections, customOptions);
     };
 
     const updateCalculations = (items, options) => {
@@ -1152,7 +1217,7 @@ const JuiceBuilder = () => {
                                     </div>
                                 ))}
 
-                                {(() => {
+                                {/* {(() => {
                                     const savedRecipe = JSON.parse(localStorage.getItem('fruitify_custom_mix'));
                                     const masterData = templates.find(t => t.id === 81);
 
@@ -1169,6 +1234,24 @@ const JuiceBuilder = () => {
                                                 <div className="relative z-10 w-full h-44 flex items-center justify-center mb-6 drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                                                     <div className="scale-90"><LiquidFill selections={savedRecipe.ingredients} totalQty={savedRecipe.totalQty || 500} isMini={true} /></div>
                                                 </div>
+                                                <div className="mb-6 px-2">
+                                                    <div className="flex justify-between items-end mb-1">
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#FACC15]">
+                                                            {isRTL ? 'مستوى التعبئة' : 'Glass Fill Level'}
+                                                        </span>
+                                                        <span className={`text-[10px] font-bold ${totals.qty >= maxCapacity ? 'text-red-400 animate-pulse' : 'text-white/60'}`}>
+                                                            {totals.qty}ml / {maxCapacity}ml {totals.qty >= maxCapacity && (isRTL ? '(ممتلئ!)' : '(Full!)')}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden border border-white/5">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-500 ${(totals.qty / maxCapacity) * 100 > 95 ? 'bg-red-500' : 'bg-[#FACC15]'
+                                                                }`}
+                                                            style={{ width: `${Math.min((totals.qty / maxCapacity) * 100, 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
                                                 <div className="flex-1 space-y-2">
                                                     <h3 className="text-2xl font-serif font-bold text-[#FACC15] italic tracking-tight">{savedRecipe.name}</h3>
                                                     <p className="text-white/40 text-[10px] uppercase font-black tracking-widest mb-6">{isRTL ? 'تم الإتقان في' : 'Mastered on'}: {savedRecipe.date}</p>
@@ -1177,6 +1260,101 @@ const JuiceBuilder = () => {
                                             </div>
                                         );
                                     } else {
+                                        return (
+                                            <div onClick={() => navigate(`/juice-builder/custom`)}
+                                                className="group relative bg-[#061916] border-2 border-dashed border-[#FACC15]/20 rounded-[2.5rem] p-8 cursor-pointer transition-all duration-500 hover:border-[#FACC15]/50 flex flex-col h-full overflow-hidden">
+                                                <div className="absolute -right-6 -top-6 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700">
+                                                    <MdOutlineScience size={200} className="text-[#FACC15]" />
+                                                </div>
+                                                <div className={`flex items-center gap-4 mb-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                    <div className="w-16 h-16 rounded-2xl bg-[#FACC15] flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.2)] shrink-0"><MdAdd className="text-[#064E3B] text-3xl" /></div>
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-white group-hover:text-[#FACC15] transition-colors uppercase tracking-tighter">{isRTL ? (masterData?.name_ar || 'مزيج مخصص') : (masterData?.name || "Custom Blend")}</h3>
+                                                        <p className="text-[9px] font-black text-[#FACC15] uppercase tracking-[0.3em] opacity-60">Lab ID: #81-A</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 space-y-4">
+                                                    <p className="text-[#FACC15] text-xs font-bold italic leading-relaxed">{isRTL ? 'تحفتك الفريدة، مصنوعة من الصفر.' : '"Your unique masterpiece, crafted from scratch."'}</p>
+                                                    <p className="text-white/40 text-[10px] leading-relaxed">{isRTL ? (masterData?.nutritional_benefits_ar || 'تم تحسين هذا المزيج لتحقيق أقصى قدر من القيمة الغذائية.') : (masterData?.nutritional_benefits || "Optimized for maximum bioavailability.")}</p>
+                                                </div>
+                                                <div className={`mt-6 flex items-center justify-center gap-2 text-[#FACC15] text-[10px] font-black uppercase tracking-[0.2em] animate-pulse ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                    {isRTL ? 'افتح المختبر' : 'Open Lab'} {isRTL ? <MdArrowBack size={14} className="rotate-180" /> : <MdArrowForward size={14} />}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                })()} */}
+
+                                {(() => {
+                                    const savedRecipe = JSON.parse(localStorage.getItem('fruitify_custom_mix'));
+                                    const masterData = templates.find(t => t.id === 81);
+
+                                    if (savedRecipe) {
+                                        // ⭐ Saved Recipe se capacity aur current volume nikalna
+                                        // Agar configuration mein options hain toh wahan se glass size uthayenge
+                                        const savedOptions = savedRecipe.configuration?.selected_options_details || [];
+                                        const glassOption = savedOptions.find(opt => opt.option_name.toLowerCase().includes('glass'));
+
+                                        // Volume nikalne ka logic (e.g., "Medium (500ml)" se 500 nikalna)
+                                        const savedCapacity = glassOption
+                                            ? parseInt(glassOption.value_name.match(/\d+/))
+                                            : (savedRecipe.unit ? parseInt(savedRecipe.unit) : 500);
+
+                                        const currentQty = savedRecipe.configuration?.totals?.qty || savedRecipe.totalQty || 0;
+
+                                        return (
+                                            <div onClick={() => navigate(`/juice-builder/custom`, { state: { initialSelections: savedRecipe.ingredients, recipeName: savedRecipe.name } })}
+                                                className="group relative bg-gradient-to-br from-[#064E3B] to-[#042f24] border border-[#FACC15]/30 rounded-[2.5rem] p-8 cursor-pointer transition-all duration-500 hover:scale-[1.02] shadow-2xl flex flex-col h-full">
+
+                                                <button onClick={handleRemoveMasterpiece} className={`absolute top-4 ${isRTL ? 'right-6' : 'left-6'} z-30 bg-red-500/20 hover:bg-red-50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all`}>
+                                                    <MdClose size={14} />
+                                                </button>
+
+                                                <div className={`absolute top-4 ${isRTL ? 'left-6' : 'right-6'} text-[#FACC15] font-black text-[8px] uppercase tracking-widest bg-[#FACC15]/10 px-3 py-1 rounded-full border border-[#FACC15]/20`}>
+                                                    {isRTL ? 'تحفتك الخاصة' : 'YOUR MASTERPIECE'}
+                                                </div>
+
+                                                <div className="relative z-10 w-full h-44 flex items-center justify-center mb-6 drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                                                    <div className="scale-90">
+                                                        {/* ⭐ Mini Visualizer with saved data */}
+                                                        <LiquidFill
+                                                            selections={savedRecipe.ingredients || savedRecipe.configuration?.ingredients || []}
+                                                            totalQty={currentQty}
+                                                            maxCapacity={savedCapacity}
+                                                            isMini={true}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="mb-6 px-2">
+                                                    <div className="flex justify-between items-end mb-1">
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#FACC15]">
+                                                            {isRTL ? 'مستوى التعبئة' : 'Glass Fill Level'}
+                                                        </span>
+                                                        <span className={`text-[10px] font-bold ${currentQty >= savedCapacity ? 'text-red-400' : 'text-white/60'}`}>
+                                                            {currentQty}ml / {savedCapacity}ml {currentQty >= savedCapacity && (isRTL ? '(ممتلئ!)' : '(Full!)')}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden border border-white/5">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-500 ${(currentQty / savedCapacity) * 100 > 95 ? 'bg-red-500' : 'bg-[#FACC15]'}`}
+                                                            style={{ width: `${Math.min((currentQty / savedCapacity) * 100, 100)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex-1 space-y-2">
+                                                    <h3 className="text-2xl font-serif font-bold text-[#FACC15] italic tracking-tight">{savedRecipe.name}</h3>
+                                                    <p className="text-white/40 text-[10px] uppercase font-black tracking-widest mb-6">{isRTL ? 'تم الإتقان في' : 'Mastered on'}: {savedRecipe.date}</p>
+                                                    <button className="w-full py-4 bg-[#FACC15] text-[#064E3B] rounded-2xl font-black text-[10px] uppercase tracking-widest group-hover:bg-white transition-all shadow-xl">
+                                                        {isRTL ? 'إعادة مزج ابتكارك' : 'REMIX YOUR CREATION'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    } else {
+                                        /* CASE B: BLANK STATE - Logic remains same */
                                         return (
                                             <div onClick={() => navigate(`/juice-builder/custom`)}
                                                 className="group relative bg-[#061916] border-2 border-dashed border-[#FACC15]/20 rounded-[2.5rem] p-8 cursor-pointer transition-all duration-500 hover:border-[#FACC15]/50 flex flex-col h-full overflow-hidden">
@@ -1213,11 +1391,11 @@ const JuiceBuilder = () => {
                                         </button>
                                         <h1 className="text-5xl font-serif font-bold text-[#064E3B]">{isRTL ? (data.product.name_ar || data.product.name) : data.product.name}</h1>
                                     </div>
-                                    <div className={`flex bg-gray-50 p-2 rounded-2xl gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                    {/* <div className={`flex bg-gray-50 p-2 rounded-2xl gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                         {[1, 2, 3, 4].map(s => (
                                             <div key={s} className={`w-10 h-10 flex items-center justify-center rounded-xl font-black text-xs ${step === s ? 'bg-[#064E3B] text-white shadow-xl' : 'text-gray-300'}`}>{s}</div>
                                         ))}
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${isRTL ? 'direction-rtl' : ''}`}>
@@ -1238,31 +1416,67 @@ const JuiceBuilder = () => {
                                 </div>
 
                                 <div className={`flex bg-white p-2 rounded-[2rem] shadow-sm border border-gray-100 overflow-x-auto no-scrollbar ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                    {[isRTL ? 'قاعدة السائل' : 'Liquid Base', isRTL ? 'فواكه وخضار' : 'Fruit & Veg', isRTL ? 'محفزات' : 'Boosters', isRTL ? 'اللمسة النهائية' : 'Final Polish'].map((label, i) => (
+                                    {[isRTL ? 'حجم الكوب' : 'Glass Size', isRTL ? 'قاعدة السائل' : 'Liquid Base', isRTL ? 'فواكه وخضار' : 'Fruit & Veg', isRTL ? 'محفزات' : 'Boosters', isRTL ? 'اللمسة النهائية' : 'Final Polish'].map((label, i) => (
                                         <button key={i} onClick={() => setStep(i + 1)} className={`flex-1 min-w-[140px] py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] transition-all ${step === i + 1 ? 'bg-[#064E3B] text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}>{label}</button>
                                     ))}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[500px]">
-                                    {step === 4 ? (
+                                    {/* Step 1 Content Replace Karo Isse */}
+                                    {step === 1 && (
+                                        <div className="col-span-full animate-in fade-in slide-in-from-bottom-4">
+                                            <div className="text-center mb-8">
+                                                <h4 className="text-lg font-bold text-[#064E3B]">{isRTL ? 'اختر حجم الكوب' : 'Select Glass Size'}</h4>
+                                                <p className="text-gray-400 text-xs">{isRTL ? 'اختر الحجم المثالي لمزيجك' : 'Choose the perfect size for your mix'}</p>
+                                            </div>
+
+                                            <div className="flex flex-wrap justify-center gap-4">
+                                                {data?.custom_options?.find(o => o.name.toLowerCase().includes('glass'))?.values.map(val => {
+                                                    const cap = parseInt(val.health_tag);
+                                                    const isSel = maxCapacity === cap;
+                                                    return (
+                                                        <button
+                                                            key={val.id}
+                                                            onClick={() => handleOptionSelect(val.option_id, val.id)}
+                                                            className={`flex-1 min-w-[120px] max-w-[180px] p-6 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center gap-3 ${isSel ? 'border-[#064E3B] bg-green-50 shadow-lg -translate-y-1' : 'border-gray-100 bg-white hover:border-green-200'
+                                                                }`}
+                                                        >
+                                                            <div className={`p-3 rounded-full ${isSel ? 'bg-[#064E3B] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                                                <MdLocalDrink size={cap === 300 ? 24 : cap === 500 ? 30 : 36} />
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <span className={`block font-bold text-sm ${isSel ? 'text-[#064E3B]' : 'text-gray-600'}`}>{val.name}</span>
+                                                                <span className="text-[10px] text-gray-400">+{formatPrice(val.price)}</span>
+                                                            </div>
+                                                            {isSel && <div className="w-2 h-2 bg-[#064E3B] rounded-full"></div>}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {step === 5 ? (
                                         <div className="col-span-full space-y-6">
-                                            {data.custom_options.map(opt => (
-                                                <div key={opt.id} className="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-50">
-                                                    <h4 className={`font-black text-[#064E3B] mb-6 uppercase text-[10px] tracking-[0.3em] flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}><MdSettings className="text-lg" /> {isRTL ? (opt.name_ar || opt.name) : opt.name}</h4>
-                                                    <div className={`flex flex-wrap gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                                                        {opt.values.map(val => (
-                                                            <button key={val.id} onClick={() => handleOptionSelect(opt.id, val.id)} className={`px-8 py-4 rounded-2xl border-2 transition-all font-bold text-sm flex flex-col ${isRTL ? 'items-end' : 'items-start'} ${customOptions[opt.id] === val.id ? 'border-[#064E3B] bg-green-50 text-[#064E3B]' : 'border-gray-50 bg-gray-50 text-gray-400'}`}>
-                                                                <span>{isRTL ? (val.name_ar || val.name) : val.name}</span>
-                                                                <span className="text-[10px] opacity-60">+{formatPrice(val.price)}</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
+                                            {data.custom_options.filter(o => !o.name.toLowerCase().includes('glass')).map(opt => (<div key={opt.id} className="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-50">
+                                                <h4 className={`font-black text-[#064E3B] mb-6 uppercase text-[10px] tracking-[0.3em] flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}><MdSettings className="text-lg" /> {isRTL ? (opt.name_ar || opt.name) : opt.name}</h4>
+                                                <div className={`flex flex-wrap gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                    {opt.values.map(val => (
+                                                        <button key={val.id} onClick={() => handleOptionSelect(opt.id, val.id)} className={`px-8 py-4 rounded-2xl border-2 transition-all font-bold text-sm flex flex-col ${isRTL ? 'items-end' : 'items-start'} ${customOptions[opt.id] === val.id ? 'border-[#064E3B] bg-green-50 text-[#064E3B]' : 'border-gray-50 bg-gray-50 text-gray-400'}`}>
+                                                            <span>{isRTL ? (val.name_ar || val.name) : val.name}</span>
+                                                            <span className="text-[10px] opacity-60">+{formatPrice(val.price)}</span>
+                                                        </button>
+                                                    ))}
                                                 </div>
+                                            </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        (step === 1 ? data.ingredients.liquids : step === 2 ? [...data.ingredients.fruits, ...data.ingredients.vegetables] : data.ingredients.boosters).map(item => {
+                                        step !== 1 && (step === 2 ? data.ingredients.liquids : step === 3 ? [...data.ingredients.fruits, ...data.ingredients.vegetables] : data.ingredients.boosters).map(item => {
                                             const active = selections.find(s => s.id === item.id);
+
+                                            // 1. Color aur Percentage yahan calculate hoga
+                                            const ingredientColor = item.color_code || '#064E3B';
+                                            const fillPercentage = ((active?.qty || 0) / 500) * 100;
                                             return (
                                                 <div key={item.id} className={`p-6 rounded-[2.5rem] transition-all duration-500 border-2 ${active?.qty > 0 ? 'bg-white border-[#064E3B] shadow-xl' : 'bg-white/50 border-transparent hover:bg-white hover:shadow-md'}`}>
                                                     <div className={`flex gap-5 mb-6 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
@@ -1277,7 +1491,7 @@ const JuiceBuilder = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="space-y-3">
+                                                    {/* <div className="space-y-3">
                                                         <div className={`flex justify-between text-[10px] font-black uppercase text-gray-400 px-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                                             <span>{isRTL ? 'الكثافة' : 'Intensity'}</span>
                                                             <span className={active?.qty > 0 ? 'text-[#064E3B]' : ''}>{active?.qty || 0} {isRTL ? 'مل' : item.unit}</span>
@@ -1287,6 +1501,40 @@ const JuiceBuilder = () => {
                                                             <span>{formatPrice(item.price)}/100ml</span>
                                                             <span>{isRTL ? 'المجموع' : 'Subtotal'}: {formatPrice(item.price * ((active?.qty || 0) / 100))}</span>
                                                         </div>
+                                                    </div> */}
+
+                                                    <div className="space-y-3">
+                                                        <div className={`flex justify-between text-[10px] font-black uppercase text-gray-400 px-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                            <span>{isRTL ? 'الكثافة' : 'Intensity'}</span>
+                                                            {/* Iska rang bhi badal dete hain taaki pata chale galti se zero toh nahi */}
+                                                            <span style={{ color: active?.qty > 0 ? ingredientColor : '' }}>
+                                                                {active?.qty || 0} {isRTL ? 'مل' : item.unit}
+                                                            </span>
+                                                        </div>
+
+                                                        <input
+                                                            type="range"
+                                                            min="0"
+                                                            max="500"
+                                                            step="50"
+                                                            value={active?.qty || 0}
+                                                            onChange={(e) => handleQtyChange(item, e.target.value)}
+                                                            className="w-full h-1.5 appearance-none cursor-pointer" // className mein 'appearance-none' zaruri hai
+                                                            style={{
+                                                                background: isRTL
+                                                                    ? `linear-gradient(to left, ${ingredientColor} ${fillPercentage}%, #f3f4f6 ${fillPercentage}%)`
+                                                                    : `linear-gradient(to right, ${ingredientColor} ${fillPercentage}%, #f3f4f6 ${fillPercentage}%)`,
+                                                                color: ingredientColor, // CSS mein 'currentColor' ke liye ye line zaruri hai
+                                                            }}
+                                                        />
+
+                                                        <div className={`flex justify-between items-center text-[11px] font-bold text-[#064E3B] opacity-60 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                                            <span>{formatPrice(item.price)}/100ml</span>
+                                                            {/* Subtotal ka rang bhi dynamic kar diya */}
+                                                            <span style={{ color: active?.qty > 0 ? ingredientColor : '' }}>
+                                                                {isRTL ? 'المجموع' : 'Subtotal'}: {formatPrice(item.price * ((active?.qty || 0) / 100))}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );
@@ -1295,10 +1543,21 @@ const JuiceBuilder = () => {
                                 </div>
                             </div>
 
-                            <div className="lg:col-span-4">
+                            {/* <div className="lg:col-span-4">
                                 <div className={`bg-[#064E3B] rounded-[4rem] p-10 lg:sticky lg:top-28 shadow-2xl text-white border-t-8 border-[#FACC15]`}>
+
                                     <div className="mb-8 flex justify-center"><LiquidFill selections={selections} totalQty={totals.qty} /></div>
+
                                     <div className="space-y-6">
+                                        <div className="mb-6 space-y-1">
+                                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-[#FACC15]">
+                                                <span>{isRTL ? 'مستوى التعبئة' : 'Fill Level'}</span>
+                                                <span className={totals.qty >= maxCapacity ? 'text-red-400' : ''}>{totals.qty}ml / {maxCapacity}ml</span>
+                                            </div>
+                                            <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                                <div className={`h-full transition-all duration-500 ${totals.qty >= maxCapacity ? 'bg-red-500' : 'bg-[#FACC15]'}`} style={{ width: `${maxCapacity > 0 ? (totals.qty / maxCapacity) * 100 : 0}%` }}></div>
+                                            </div>
+                                        </div>
                                         <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
                                             <div className={`flex justify-between items-center mb-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                                 <span className="text-xs font-black uppercase tracking-widest text-[#FACC15]">{isRTL ? 'حقائق غذائية' : 'Nutrition Facts'}</span>
@@ -1318,6 +1577,68 @@ const JuiceBuilder = () => {
                                         <button disabled={totals.qty === 0} onClick={handleCheckoutCustom} className={`group w-full bg-[#FACC15] text-[#064E3B] py-6 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-white transition-all active:scale-95 disabled:opacity-20 disabled:grayscale ${isRTL ? 'flex-row-reverse' : ''}`}>
                                             {isRTL ? 'إتمام المزيج' : 'Checkout Blend'} {isRTL ? <MdArrowBack size={18} className="rotate-180" /> : <MdArrowForward className="group-hover:translate-x-1 transition-transform" size={18} />}
                                         </button>
+                                    </div>
+                                </div>
+                            </div> */}
+
+                            {/* Sidebar (Right Side) inside JuiceBuilder.jsx */}
+                            <div className="lg:col-span-4">
+                                <div className="bg-[#064E3B] rounded-[3.5rem] p-8 lg:sticky lg:top-24 text-white border-t-8 border-[#FACC15] shadow-2xl overflow-hidden">
+
+                                    {/* Visualizer Section */}
+                                    <div className="mb-10 pt-4 flex justify-center">
+                                        <LiquidFill selections={selections} totalQty={totals.qty} maxCapacity={maxCapacity} />
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        {/* Fill Level Section */}
+                                        <div className="px-2">
+                                            <div className="flex justify-between items-end mb-2">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FACC15] opacity-80">Volume Engine</span>
+                                                <span className={`text-xs font-bold ${totals.qty >= maxCapacity ? 'text-red-400' : 'text-white'}`}>
+                                                    {totals.qty} <span className="opacity-40">/ {maxCapacity} ml</span>
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-black/20 h-1.5 rounded-full overflow-hidden border border-white/5">
+                                                <div
+                                                    className={`h-full transition-all duration-700 rounded-full ${totals.qty >= maxCapacity ? 'bg-red-500' : 'bg-[#FACC15]'}`}
+                                                    style={{ width: `${(totals.qty / maxCapacity) * 100}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Calories Section */}
+                                        <div className="px-2">
+                                            <div className="flex justify-between items-end mb-2">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FACC15] opacity-80">Energy Density</span>
+                                                <span className="text-xs font-bold">{totals.calories} <span className="opacity-40 text-[10px]">kcal</span></span>
+                                            </div>
+                                            <div className="w-full bg-black/20 h-1.5 rounded-full overflow-hidden border border-white/5">
+                                                <div
+                                                    className="h-full bg-white transition-all duration-700 rounded-full opacity-60"
+                                                    style={{ width: `${Math.min((totals.calories / 600) * 100, 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Total Price Section */}
+                                        <div className="pt-6 border-t border-white/10">
+                                            <div className="flex justify-between items-baseline mb-6">
+                                                <span className="text-lg font-serif italic">Subtotal</span>
+                                                <div className="text-right">
+                                                    <div className="text-4xl font-serif font-black text-[#FACC15] leading-none">{formatPrice(totals.price)}</div>
+                                                    <span className="text-[8px] uppercase tracking-widest opacity-40">Tax & Packing included</span>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                disabled={totals.qty === 0}
+                                                onClick={handleCheckoutCustom}
+                                                className="w-full bg-[#FACC15] text-[#064E3B] py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-white transition-all transform active:scale-95 shadow-[0_15px_30px_-5px_rgba(250,204,21,0.3)]"
+                                            >
+                                                {isRTL ? 'إتمام المزيج' : 'Checkout Blend'} <MdArrowForward size={18} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

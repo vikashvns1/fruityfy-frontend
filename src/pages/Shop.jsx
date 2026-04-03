@@ -38,7 +38,7 @@
 //             category_id: selectedCategoryId,
 //             limit: 50 // Zyada products fetch karne ke liye
 //         });
-        
+
 //         if (res.success) {
 //           setProducts(res.data || []); //
 //         }
@@ -136,7 +136,7 @@
 
 //         {/* ================= MAIN CONTENT ================= */}
 //         <div className="flex-1 space-y-6">
-          
+
 //           {/* TOP BAR / BREADCRUMB */}
 //           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 //             <div className="space-y-1">
@@ -149,7 +149,7 @@
 //                   <span className="text-green-700">{activeCategory?.name || 'Shop All'}</span>
 //                </div>
 //             </div>
-            
+
 //             <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-gray-100">
 //                 <span className="text-xs font-black text-gray-800 uppercase tracking-tighter">
 //                    {products.length} Items Found
@@ -218,12 +218,12 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { 
-  ChevronRight, 
+import {
+  ChevronRight,
   ChevronLeft,
-  ChevronDown, 
-  SlidersHorizontal, 
-  LayoutGrid, 
+  ChevronDown,
+  SlidersHorizontal,
+  LayoutGrid,
   ArrowUpDown,
   RefreshCcw,
   SearchX,
@@ -244,7 +244,7 @@ const Shop = () => {
 
   const queryParams = new URLSearchParams(location.search);
   const selectedCategoryId = queryParams.get('category');
-
+  const searchQuery = queryParams.get('search');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -255,11 +255,12 @@ const Shop = () => {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const res = await fetchProducts({ 
-            category_id: selectedCategoryId,
-            limit: 50 
+        const res = await fetchProducts({
+          category_id: selectedCategoryId,
+          q: searchQuery,
+          limit: 50
         });
-        
+
         if (res.success) {
           setProducts(res.data || []);
         }
@@ -270,7 +271,7 @@ const Shop = () => {
       }
     };
     loadProducts();
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, searchQuery]);
 
   /* ================= FETCH CATEGORIES ================= */
   useEffect(() => {
@@ -311,16 +312,16 @@ const Shop = () => {
                 className={`w-full text-sm py-3.5 px-5 rounded-2xl transition-all duration-300 font-bold flex items-center gap-3
                 ${isRTL ? 'text-right flex-row-reverse' : 'text-left flex-row'}
                 ${!selectedCategoryId
-                  ? 'bg-green-600 text-white shadow-xl shadow-green-100'
-                  : 'text-gray-500 hover:bg-gray-50'}`}
+                    ? 'bg-green-600 text-white shadow-xl shadow-green-100'
+                    : 'text-gray-500 hover:bg-gray-50'}`}
               >
                 <Home size={16} /> {isRTL ? 'كل المنتجات' : 'All Products'}
               </button>
 
               {categories.filter(c => !c.parent_id).map(parent => {
                 const subs = getSubCategories(parent.id);
-                const isOpen = selectedCategoryId === parent.id.toString() || 
-                               subs.some(s => s.id.toString() === selectedCategoryId);
+                const isOpen = selectedCategoryId === parent.id.toString() ||
+                  subs.some(s => s.id.toString() === selectedCategoryId);
 
                 return (
                   <div key={parent.id} className="pt-1">
@@ -345,8 +346,8 @@ const Shop = () => {
                             className={`w-full text-xs py-2.5 px-3 rounded-xl transition-all
                             ${isRTL ? 'text-right' : 'text-left'}
                             ${selectedCategoryId === sub.id.toString()
-                              ? 'text-green-700 font-black bg-white shadow-sm'
-                              : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'}`}
+                                ? 'text-green-700 font-black bg-white shadow-sm'
+                                : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'}`}
                           >
                             {isRTL ? (sub.name_ar || sub.name) : sub.name}
                           </button>
@@ -362,24 +363,24 @@ const Shop = () => {
 
         {/* ================= MAIN CONTENT ================= */}
         <div className="flex-1 space-y-6">
-          
+
           {/* TOP BAR / BREADCRUMB */}
           <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 ${isRTL ? 'md:flex-row-reverse' : ''}`}>
             <div className="space-y-1">
-               <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-                 {isRTL ? (activeCategory?.name_ar || activeCategory?.name || 'سوق طازج') : (activeCategory?.name || 'Fresh Market')}
-               </h1>
-               <div className={`flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <Link to="/" className="hover:text-green-600">{t('nav.home')}</Link>
-                  {isRTL ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
-                  <span className="text-green-700">{isRTL ? (activeCategory?.name_ar || activeCategory?.name || 'تسوق الكل') : (activeCategory?.name || 'Shop All')}</span>
-               </div>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+                {isRTL ? (activeCategory?.name_ar || activeCategory?.name || 'سوق طازج') : (activeCategory?.name || 'Fresh Market')}
+              </h1>
+              <div className={`flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <Link to="/" className="hover:text-green-600">{t('nav.home')}</Link>
+                {isRTL ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+                <span className="text-green-700">{isRTL ? (activeCategory?.name_ar || activeCategory?.name || 'تسوق الكل') : (activeCategory?.name || 'Shop All')}</span>
+              </div>
             </div>
-            
+
             <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-gray-100">
-                <span className="text-xs font-black text-gray-800 uppercase tracking-tighter">
-                   {products.length} {t('product.items')} {isRTL ? 'تم العثور عليها' : 'Found'}
-                </span>
+              <span className="text-xs font-black text-gray-800 uppercase tracking-tighter">
+                {products.length} {t('product.items')} {isRTL ? 'تم العثور عليها' : 'Found'}
+              </span>
             </div>
           </div>
 
@@ -394,8 +395,8 @@ const Shop = () => {
 
             <div className={`flex items-center gap-3 ${isRTL ? 'pl-2 flex-row-reverse' : 'pr-2'}`}>
               <ArrowUpDown size={14} className="text-gray-400" />
-              <select 
-                value={sortBy} 
+              <select
+                value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className={`text-xs font-bold text-gray-600 bg-gray-50 border-none rounded-xl py-2.5 px-5 focus:ring-2 focus:ring-green-500 outline-none cursor-pointer ${isRTL ? 'text-right' : 'text-left'}`}
               >
@@ -410,8 +411,8 @@ const Shop = () => {
           {/* PRODUCTS GRID SECTION */}
           {loading ? (
             <div className="min-h-[500px] flex flex-col items-center justify-center gap-4">
-               <div className="w-12 h-12 border-4 border-green-100 border-t-green-600 rounded-full animate-spin" />
-               <p className="font-black text-gray-400 uppercase tracking-widest text-[10px] animate-pulse">{t('common.loading')}</p>
+              <div className="w-12 h-12 border-4 border-green-100 border-t-green-600 rounded-full animate-spin" />
+              <p className="font-black text-gray-400 uppercase tracking-widest text-[10px] animate-pulse">{t('common.loading')}</p>
             </div>
           ) : sortedProducts.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -424,9 +425,23 @@ const Shop = () => {
               <div className="bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
                 <SearchX size={40} className="text-gray-200" />
               </div>
-              <h2 className="text-xl font-black text-gray-800 uppercase tracking-tight">{isRTL ? 'لم يتم العثور على حصاد' : 'No Harvest Found'}</h2>
-              <p className="text-gray-400 text-sm mt-2 max-w-xs mx-auto font-medium">{t('common.search_no_results')}</p>
-              <button
+              <h2 className="text-xl font-black text-gray-800 uppercase tracking-tight">
+                {searchQuery
+                  ? `No results for "${searchQuery}"`
+                  : (isRTL ? 'لم يتم العثور على منتجات' : 'No Products Found')
+                }
+              </h2>
+
+              <p className="text-gray-400 text-sm mt-2 max-w-xs mx-auto font-medium">
+                {searchQuery
+                  ? (isRTL
+                    ? 'لم نتمكن من العثور على أي نتائج لبحثك. حاول كلمات أخرى.'
+                    : 'Try searching with different keywords or check spelling.')
+                  : (isRTL
+                    ? 'لا توجد منتجات في هذه الفئة حالياً.'
+                    : 'We couldn’t find any products in this category.')
+                }
+              </p>  <button
                 onClick={() => navigate('/shop')}
                 className="mt-8 bg-gray-900 text-white px-10 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-green-700 transition-all shadow-xl shadow-gray-200 active:scale-95"
               >

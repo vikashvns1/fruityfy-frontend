@@ -40,3 +40,60 @@
 .read-the-docs {
   color: #888;
 }
+/* --- JUICE BUILDER DYNAMIC SLIDER CUSTOM STYLING --- */
+
+/* 1. Base track styling */
+input[type="range"].appearance-none {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px; /* Track ki thickness */
+  border-radius: 999px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+/* 2. Slider Thumb (Gola) - Chrome, Safari, Edge, Opera */
+input[type="range"].appearance-none::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: white; /* Thumb hamesha white rahega */
+  border: 3px solid currentColor; /* Ye parent ke style se dynamic color le lega */
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 3. Slider Thumb - Firefox */
+input[type="range"].appearance-none::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: white;
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+/* 4. Hover effect on thumb */
+input[type="range"].appearance-none:hover::-webkit-slider-thumb {
+  transform: scale(1.2); /* Hover karne pe gola thoda bada hoga */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 5. Smooth focus state */
+input[type="range"].appearance-none:focus {
+  box-shadow: none;
+}
+
+.glass-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 40px 40px 100px 100px; /* Glass ki shape */
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}

@@ -472,7 +472,15 @@ const OrderDetails = () => {
     useEffect(() => {
         loadOrder();
     }, [id]);
-
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'delivered': return 'bg-green-500';
+    case 'cancelled': return 'bg-red-500';
+    case 'partially_delivered': return 'bg-blue-500';
+    case 'processing': return 'bg-purple-500';
+    default: return 'bg-yellow-500';
+  }
+};
     const loadOrder = async () => {
         setLoading(true);
         const result = await fetchOrderById(id);
@@ -540,7 +548,6 @@ const OrderDetails = () => {
                 icon = <CheckCircle size={12} />;
                 break;
             case 'shipped':
-            case 'out_for_delivery':
                 colorClass = 'bg-blue-50 text-blue-700 border-blue-200';
                 icon = <Truck size={12} />;
                 break;
@@ -568,8 +575,24 @@ const OrderDetails = () => {
     if (!order) return <div className="min-h-screen flex items-center justify-center">{isRTL ? 'الطلب غير موجود' : 'Order not found.'}</div>;
 
     const masterStatusLower = order.order_status ? order.order_status.toLowerCase() : 'pending';
-    const steps = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered'];
-    const currentStep = steps.indexOf(masterStatusLower);
+    // const steps = ['pending', 'confirmed', 'preparing', 'shipped', 'delivered'];
+    const steps = ['pending', 'processing', 'partially_delivered', 'delivered'];
+    const totalItems = order.items.length;
+const orderStepMap = {
+  pending: 0,
+  processing: 1,
+  partially_delivered: 2,
+  delivered: 3,
+  cancelled: 0
+};
+
+const currentStep = orderStepMap[order?.order_status] ?? 0;
+
+// progress based on order step
+const progressPercent = (currentStep / (steps.length - 1)) * 100;
+
+// OPTIONAL (upar wali line ke liye count dikhane ke liye)
+const deliveredItems = order.items.filter(i => i.item_status === 'delivered').length;
 
     return (
         <div className={`min-h-screen bg-[#FDFDFD] py-12 px-4 font-sans selection:bg-green-100 ${isRTL ? 'text-right' : 'text-left'}`}>
@@ -587,12 +610,22 @@ const OrderDetails = () => {
                             <p className="text-sm font-medium text-gray-500 mt-1 flex items-center gap-2 justify-start">
                                 <Clock size={14} /> {isRTL ? 'تم الطلب في' : 'Placed on'} {new Date(order.created_at).toLocaleDateString(isRTL ? 'ar-AE' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
+                            <p className="text-xs text-gray-400">
+                                {deliveredItems} / {totalItems} items delivered
+                            </p>
                         </div>
                     </div>
-                    <div className={`flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <div className={`w-3 h-3 rounded-full animate-pulse ${masterStatusLower === 'delivered' ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                        <span className={`text-sm font-bold text-gray-800 capitalize ${isRTL ? 'pl-2' : 'pr-2'}`}>{isRTL ? t(`status.${masterStatusLower}`) : order.order_status.replace(/_/g, " ")}</span>
-                    </div>
+                  <div className={`flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100 ${isRTL ? 'flex-row-reverse' : ''}`}>
+
+    {/* DOT */}
+    <div className={`w-3 h-3 rounded-full animate-pulse ${getStatusColor(order.order_status)}`} />
+
+    {/* TEXT */}
+    <span className={`text-sm font-bold text-gray-800 capitalize ${isRTL ? 'pl-2' : 'pr-2'}`}>
+        {t(`status.${order.order_status}`)}
+    </span>
+
+</div>
                 </div>
 
                 <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${isRTL ? 'lg:flex-row-reverse' : ''}`}>
@@ -610,23 +643,44 @@ const OrderDetails = () => {
                                 <div className="absolute top-5 left-0 w-full h-1 bg-gray-100 rounded-full overflow-hidden">
                                     <div
                                         className={`h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-1000 ease-out ${isRTL ? 'float-right' : ''}`}
-                                        style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                                        style={{ width: `${progressPercent}%` }}
                                     />
                                 </div>
 
                                 {steps.map((step, index) => {
-                                    const isCompleted = index <= currentStep;
-                                    return (
-                                        <div key={step} className="relative z-10 flex flex-col items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border-4 transition-all duration-500 ${isCompleted ? 'bg-green-600 border-white text-white shadow-lg shadow-green-200' : 'bg-white border-gray-100 text-gray-300'}`}>
-                                                {isCompleted ? <CheckCircle size={18} /> : <span className="text-xs font-bold">{index + 1}</span>}
-                                            </div>
-                                            <span className={`text-[10px] font-black uppercase tracking-tighter ${isCompleted ? 'text-green-700' : 'text-gray-400'}`}>
-                                                {isRTL ? t(`status.${step}`) : step.replace(/_/g, " ")}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
+  const isCompleted = index <= currentStep;
+const isActive = index === currentStep;
+
+  return (
+    <div key={step} className="flex flex-col items-center flex-1">
+
+     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold
+  ${
+    isCompleted
+      ? 'bg-green-500'
+      : isActive
+      ? 'bg-yellow-500'
+      : 'bg-gray-300 text-gray-500'
+  }
+`}>
+  {isCompleted ? '✓' : index + 1}
+</div>
+
+      <span className={`text-[10px] mt-1 uppercase
+  ${
+    isCompleted
+      ? 'text-green-600'
+      : isActive
+      ? 'text-yellow-600'
+      : 'text-gray-400'
+  }
+`}>
+  {step}
+</span>
+
+    </div>
+  );
+})}
                             </div>
                         </div>
 
@@ -641,7 +695,8 @@ const OrderDetails = () => {
                                         config = typeof item.customization === 'string' ? JSON.parse(item.customization) : item.customization;
                                     } catch (e) { console.error("Recipe parsing failed", e); }
                                 }
-                                const isItemDelivered = item.item_status === 'delivered' || (item.item_status === 'pending' && masterStatusLower === 'delivered');
+                                // const isItemDelivered = item.item_status === 'delivered' || (item.item_status === 'pending' && masterStatusLower === 'delivered');
+                                const isItemDelivered = item.item_status === 'delivered';
                                 const rating = parseInt(item.my_rating || 0);
 
                                 return (

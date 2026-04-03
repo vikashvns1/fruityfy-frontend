@@ -51,21 +51,16 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-const LiquidFill = ({ selections = [], totalQty = 0, isMini = false }) => {
+const LiquidFill = ({ selections = [], totalQty = 0, isMini = false, maxCapacity = 500 }) => {
     const { i18n } = useTranslation();
     const isRTL = i18n.language === 'ar';
 
-    // 🎨 RGB Blending Logic: Quantity ke weighted average ke base par color mix hoga
     const getBlendedColor = () => {
-        if (!selections || selections.length === 0) return 'rgba(229, 231, 235, 0.3)'; // Default Grayish
-
+        if (!selections || selections.length === 0) return 'rgba(255, 255, 255, 0.1)';
         let r = 0, g = 0, b = 0, totalWeight = 0;
-
         selections.forEach(item => {
-            // Hex (#ffffff) ko RGB mein convert karna
-            const hex = item.color_code || '#facc15'; // Default Fruitify Yellow agar color na ho
+            const hex = item.color_code || '#facc15';
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
             if (result) {
                 const weight = Number(item.qty) || 0;
                 r += parseInt(result[1], 16) * weight;
@@ -74,56 +69,58 @@ const LiquidFill = ({ selections = [], totalQty = 0, isMini = false }) => {
                 totalWeight += weight;
             }
         });
-
-        if (totalWeight === 0) return 'rgba(229, 231, 235, 0.3)';
-
-        // Weighted Average nikalna
+        if (totalWeight === 0) return 'rgba(255, 255, 255, 0.1)';
         r = Math.round(r / totalWeight);
         g = Math.round(g / totalWeight);
         b = Math.round(b / totalWeight);
-
         return `rgb(${r}, ${g}, ${b})`;
     };
 
     const blendedColor = getBlendedColor();
-    // Capacity 500 ya 1000ml jo bhi aap set karein
-    const fillLevel = Math.min((totalQty / 500) * 100, 100);
+    // Capacity user selection ke base par fix hogi
+    const fillLevel = Math.min((totalQty / maxCapacity) * 100, 100);
 
     return (
-        <div className={`relative ${isMini ? 'w-24 h-36' : 'w-48 h-72'} mx-auto transition-all duration-500`}>
-
-            {/* ⭐ Main Glass Body */}
-            <div className="absolute inset-0 border-[3px] border-white/40 rounded-b-[3.5rem] rounded-t-xl overflow-hidden bg-white/5 backdrop-blur-md z-10 shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
-
-                {/* 🌊 Dynamic Blended Liquid Layer */}
+        <div className={`relative ${isMini ? 'w-24 h-40' : 'w-44 h-72'} mx-auto transition-all duration-700`}>
+            
+            {/* Glass Container */}
+            <div className="absolute inset-0 border-[4px] border-white/20 rounded-b-[4rem] rounded-t-2xl overflow-hidden bg-white/5 backdrop-blur-sm z-10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
+                
+                {/* Liquid */}
                 <div
                     className="absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-in-out"
                     style={{
                         height: `${fillLevel}%`,
                         backgroundColor: blendedColor,
-                        boxShadow: fillLevel > 0 ? `inset 0 10px 20px rgba(255,255,255,0.2)` : 'none'
+                        boxShadow: fillLevel > 0 ? `inset 0 10px 30px rgba(255,255,255,0.3)` : 'none'
                     }}
                 >
-                    {/* Top Surface Shine (Gives liquid depth) */}
+                    {/* Top Surface Wave/Shine */}
                     {fillLevel > 0 && (
-                        <div className="absolute top-0 left-0 right-0 h-4 bg-white/20 blur-[2px] animate-pulse" />
+                        <div className="absolute -top-1 left-0 right-0 h-3 bg-white/30 blur-[4px] animate-pulse" />
                     )}
-
-                    {/* Animated Bubbles Pattern */}
-                    <div className="absolute inset-0 opacity-10 animate-pulse bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
                 </div>
 
-                {/* Glass Reflection/Shine Line */}
-                <div className={`absolute top-6 ${isRTL ? 'right-4' : 'left-4'} w-3 h-2/3 bg-white/10 rounded-full blur-[1px] pointer-events-none`} />
+                {/* Vertical Shine lines for Glassy look */}
+                <div className="absolute top-10 left-4 w-1.5 h-1/2 bg-white/10 rounded-full blur-[1px]" />
+                <div className="absolute top-20 right-6 w-1 h-1/3 bg-white/5 rounded-full blur-[1px]" />
             </div>
 
-            {/* Glass Rim Top Detail */}
-            <div className="absolute -top-1 left-1 right-1 h-5 border-2 border-white/20 rounded-[100%] z-0 bg-white/5" />
+            {/* Top Rim */}
+            <div className="absolute -top-2 left-0 right-0 h-6 border-[3px] border-white/15 rounded-[100%] z-0 bg-white/5" />
 
-            {/* Empty State Text */}
+            {/* ML Markers on Glass Side */}
+            <div className="absolute -right-8 inset-y-4 flex flex-col justify-between text-[8px] font-black text-white/30 py-2 pointer-events-none">
+                <span>{maxCapacity}</span>
+                <span>{Math.round(maxCapacity * 0.75)}</span>
+                <span>{Math.round(maxCapacity * 0.5)}</span>
+                <span>{Math.round(maxCapacity * 0.25)}</span>
+                <span>0</span>
+            </div>
+
             {totalQty === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center text-white/20 font-serif italic text-xs z-30 tracking-[0.3em] uppercase">
-                    {isRTL ? 'المختبر فارغ' : 'Lab Empty'}
+                <div className="absolute inset-0 flex items-center justify-center text-white/10 font-black text-[10px] z-30 tracking-[0.4em] uppercase">
+                    {isRTL ? 'فارغ' : 'Empty'}
                 </div>
             )}
         </div>

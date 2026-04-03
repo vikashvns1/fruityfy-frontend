@@ -8,7 +8,7 @@
 // const Profile = () => {
 //     const { logout } = useAuth();
 //     const navigate = useNavigate();
-    
+
 //     // State
 //     const [loading, setLoading] = useState(true);
 //     const [activeTab, setActiveTab] = useState('dashboard'); 
@@ -34,11 +34,11 @@
 //     const loadDashboard = async () => {
 //         setLoading(true);
 //         const res = await fetchUserProfile();
-        
+
 //         if (res.success) {
 //             setUserData(res.data.user);
 //             setRecentOrders(res.data.recent_orders || []);
-            
+
 //             setFormData({
 //                 full_name: res.data.user.full_name || '',
 //                 phone: res.data.user.phone || '',
@@ -99,7 +99,7 @@
 //     return (
 //         <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 md:px-8">
 //             <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-                
+
 //                 {/* --- LEFT SIDEBAR --- */}
 //                 <div className="lg:col-span-1">
 //                     <div className="bg-white rounded-xl shadow-sm p-6 text-center">
@@ -132,7 +132,7 @@
 
 //                 {/* --- RIGHT CONTENT --- */}
 //                 <div className="lg:col-span-3">
-                    
+
 //                     {/* 1. DASHBOARD TAB */}
 //                     {activeTab === 'dashboard' && (
 //                         <div className="space-y-6">
@@ -299,16 +299,16 @@ import { useTranslation } from 'react-i18next'; // 2. Added translation hook
 import toast from 'react-hot-toast';
 
 const Profile = () => {
-    const { logout } = useAuth();
+    const { logout, setUser } = useAuth();
     const navigate = useNavigate();
-    const { t, i18n } = useTranslation(); 
+    const { t, i18n } = useTranslation();
     const { formatPrice } = useSettings(); // 3. Fixed ReferenceError by initializing hook
 
     const isRTL = i18n.language === 'ar';
-    
+
     // State
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('dashboard'); 
+    const [activeTab, setActiveTab] = useState('dashboard');
     const [userData, setUserData] = useState(null);
     const [recentOrders, setRecentOrders] = useState([]);
     const [allOrders, setAllOrders] = useState([]);
@@ -331,11 +331,11 @@ const Profile = () => {
     const loadDashboard = async () => {
         setLoading(true);
         const res = await fetchUserProfile();
-        
+
         if (res.success) {
             setUserData(res.data.user);
             setRecentOrders(res.data.recent_orders || []);
-            
+
             setFormData({
                 full_name: res.data.user.full_name || '',
                 phone: res.data.user.phone || '',
@@ -369,9 +369,11 @@ const Profile = () => {
 
         const res = await updateUserProfile(data);
         if (res.success) {
-            toast.success(isRTL ? "تم تحديث الملف الشخصي بنجاح!" : "Profile updated successfully!");
+setUser(res.data);
             setUserData(res.data);
             setFormData(prev => ({ ...prev, password: '' }));
+            localStorage.setItem('user', JSON.stringify(res.data));
+            toast.success(isRTL ? "تم تحديث الملف الشخصي بنجاح!" : "Profile updated successfully!");
         } else {
             toast.error(res.message);
         }
@@ -388,7 +390,7 @@ const Profile = () => {
     const getProfileImg = (path) => {
         if (previewImage) return previewImage;
         if (path && path.startsWith('/uploads')) return getImageUrl(path);
-        return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; 
+        return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
     };
 
     if (loading) return <div className="h-screen flex items-center justify-center text-green-600 font-bold">{t('common.loading')}</div>;
@@ -396,14 +398,14 @@ const Profile = () => {
     return (
         <div className={`min-h-screen bg-gray-50 pt-24 pb-12 px-4 md:px-8 ${isRTL ? 'text-right' : 'text-left'}`}>
             <div className={`max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 ${isRTL ? 'lg:flex-row-reverse' : ''}`}>
-                
+
                 {/* --- LEFT SIDEBAR --- */}
                 <div className="lg:col-span-1">
                     <div className="bg-white rounded-xl shadow-sm p-6 text-center">
                         <div className="relative w-24 h-24 mx-auto mb-4">
-                            <img 
-                                src={getProfileImg(userData?.profile_pic)} 
-                                alt="Profile" 
+                            <img
+                                src={getProfileImg(userData?.profile_pic)}
+                                alt="Profile"
                                 className="w-full h-full rounded-full object-cover border-4 border-green-50"
                             />
                         </div>
@@ -429,7 +431,7 @@ const Profile = () => {
 
                 {/* --- RIGHT CONTENT --- */}
                 <div className="lg:col-span-3">
-                    
+
                     {/* 1. DASHBOARD TAB */}
                     {activeTab === 'dashboard' && (
                         <div className="space-y-6">
@@ -463,17 +465,16 @@ const Profile = () => {
                                                         <td className="py-4 text-gray-500">{new Date(order.created_at).toLocaleDateString(isRTL ? 'ar-AE' : 'en-GB')}</td>
                                                         <td className="py-4 font-bold">{formatPrice(order.final_total)}</td>
                                                         <td className="py-4">
-                                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                                                order.order_status === 'delivered' ? 'bg-green-100 text-green-700' : 
-                                                                order.order_status === 'cancelled' ? 'bg-red-100 text-red-700' : 
-                                                                'bg-yellow-100 text-yellow-700'
-                                                            }`}>
+                                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${order.order_status === 'delivered' ? 'bg-green-100 text-green-700' :
+                                                                order.order_status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                                    'bg-yellow-100 text-yellow-700'
+                                                                }`}>
                                                                 {isRTL ? t(`status.${order.order_status}`) : order.order_status.toUpperCase()}
                                                             </span>
                                                         </td>
                                                         <td className="py-4">
                                                             <Link to={`/order/${order.id}`} className={`text-green-600 hover:text-green-800 font-medium flex items-center gap-1 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
-                                                                {isRTL ? 'عرض' : 'View'} {isRTL ? <ArrowLeft size={14}/> : <ArrowRight size={14}/>}
+                                                                {isRTL ? 'عرض' : 'View'} {isRTL ? <ArrowLeft size={14} /> : <ArrowRight size={14} />}
                                                             </Link>
                                                         </td>
                                                     </tr>
@@ -494,16 +495,16 @@ const Profile = () => {
                             <h2 className={`text-xl font-bold mb-6 ${isRTL ? 'text-right' : ''}`}>{isRTL ? 'سجل الطلبات' : 'Order History'}</h2>
                             <div className="space-y-4">
                                 {allOrders.map(order => (
-                                    <Link 
-                                        to={`/order/${order.id}`} 
-                                        key={order.id} 
+                                    <Link
+                                        to={`/order/${order.id}`}
+                                        key={order.id}
                                         className={`block border rounded-lg p-4 hover:shadow-md transition-all duration-200 group bg-white ${isRTL ? 'text-right' : ''}`}
                                     >
                                         <div className={`flex flex-col md:flex-row justify-between items-start md:items-center ${isRTL ? 'md:flex-row-reverse' : ''}`}>
                                             <div className={`flex gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                                 <div className="bg-gray-100 w-16 h-16 rounded flex items-center justify-center overflow-hidden border">
                                                     {order.thumbnail ? (
-                                                        <img src={getImageUrl(order.thumbnail)} alt="Product" className="w-full h-full object-cover mix-blend-multiply"/>
+                                                        <img src={getImageUrl(order.thumbnail)} alt="Product" className="w-full h-full object-cover mix-blend-multiply" />
                                                     ) : <Package className="text-gray-400" />}
                                                 </div>
                                                 <div>
@@ -516,9 +517,8 @@ const Profile = () => {
                                             </div>
                                             <div className={`${isRTL ? 'text-left' : 'text-right'} mt-2 md:mt-0`}>
                                                 <p className="font-bold text-lg">{formatPrice(order.final_total)}</p>
-                                                <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold ${
-                                                    order.order_status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                                                }`}>
+                                                <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold ${order.order_status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                                    }`}>
                                                     {isRTL ? t(`status.${order.order_status}`) : order.order_status.toUpperCase()}
                                                 </span>
                                             </div>
@@ -539,7 +539,7 @@ const Profile = () => {
                                     <div className="relative w-20 h-20">
                                         <img src={getProfileImg(userData?.profile_pic)} className="w-full h-full rounded-full object-cover border" alt="Profile" />
                                         <label className={`absolute bottom-0 ${isRTL ? 'left-0' : 'right-0'} bg-white border shadow p-1 rounded-full cursor-pointer hover:bg-gray-50`}>
-                                            <Camera size={14} className="text-gray-600"/>
+                                            <Camera size={14} className="text-gray-600" />
                                             <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                                         </label>
                                     </div>
@@ -551,23 +551,23 @@ const Profile = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">{isRTL ? 'الاسم الكامل' : 'Full Name'}</label>
-                                    <input type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none ${isRTL ? 'text-right' : ''}`} />
+                                    <input type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none ${isRTL ? 'text-right' : ''}`} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">{isRTL ? 'رقم الهاتف' : 'Phone Number'}</label>
-                                    <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none ${isRTL ? 'text-right' : ''}`} />
+                                    <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none ${isRTL ? 'text-right' : ''}`} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">{isRTL ? 'الجنس' : 'Gender'}</label>
-                                    <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none ${isRTL ? 'text-right' : ''}`}>
+                                    <select value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none ${isRTL ? 'text-right' : ''}`}>
                                         <option value="Male">{isRTL ? 'ذكر' : 'Male'}</option>
                                         <option value="Female">{isRTL ? 'أنثى' : 'Female'}</option>
                                         <option value="Other">{isRTL ? 'آخر' : 'Other'}</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{isRTL ? 'كلمة المرور الجديدة' : 'New Password'}</label>
-                                    <input type="password" placeholder={isRTL ? 'اتركه فارغاً للاحتفاظ بالحالية' : 'Leave blank to keep current'} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none ${isRTL ? 'text-right' : ''}`} />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{isRTL ? 'كلمة المرور الجديدة' : 'Change Password'}</label>
+                                    <input type="password" placeholder={isRTL ? 'اتركه فارغاً للاحتفاظ بالحالية' : 'Leave blank to keep current'} value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 outline-none ${isRTL ? 'text-right' : ''}`} />
                                 </div>
                                 <div className={`md:col-span-2 ${isRTL ? 'text-left' : 'text-right'}`}>
                                     <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-sm">{isRTL ? 'حفظ التغييرات' : 'Save Changes'}</button>

@@ -348,15 +348,6 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
-  const getProfileImage = () => {
-    if (user?.profile_pic) {
-      return user.profile_pic.startsWith('http')
-        ? user.profile_pic
-        : getImageUrl(user.profile_pic);
-    }
-    return 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-  };
-
   return (
     <>
       <header className={`sticky top-0 z-50 bg-white transition-all ${scrolled ? 'shadow-lg' : 'shadow-sm'}`}>
@@ -373,20 +364,20 @@ const Navbar = () => {
           <div className="flex items-center gap-4 ml-4 shrink-0">
             {/* 5. LANGUAGE SWITCHER BUTTON */}
             <div className="flex items-center gap-2 border-r border-green-200 pr-4">
-               <Globe size={14} className="text-green-700" />
-               <button 
-                  onClick={() => changeLanguage('en')} 
-                  className={`hover:text-green-900 transition ${i18n.language === 'en' ? 'font-black underline underline-offset-4' : 'font-normal'}`}
-                >
-                  EN
-                </button>
-               <span className="text-gray-300">|</span>
-               <button 
-                  onClick={() => changeLanguage('ar')} 
-                  className={`hover:text-green-900 transition ${i18n.language === 'ar' ? 'font-black underline underline-offset-4' : 'font-normal'}`}
-                >
-                  العربية
-                </button>
+              <Globe size={14} className="text-green-700" />
+              <button
+                onClick={() => changeLanguage('en')}
+                className={`hover:text-green-900 transition ${i18n.language === 'en' ? 'font-black underline underline-offset-4' : 'font-normal'}`}
+              >
+                EN
+              </button>
+              <span className="text-gray-300">|</span>
+              <button
+                onClick={() => changeLanguage('ar')}
+                className={`hover:text-green-900 transition ${i18n.language === 'ar' ? 'font-black underline underline-offset-4' : 'font-normal'}`}
+              >
+                العربية
+              </button>
             </div>
 
             <span className="text-black font-medium italic uppercase text-[10px]">
@@ -451,13 +442,22 @@ const Navbar = () => {
                   <Heart size={22} />
                 </Link>
               )}
-
               {user ? (
                 <Link to="/profile">
-                  <img
-                    src={getProfileImage()}
+                  {/* <img
+                    src={getImageUrl(user.profile_pic, 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png')}
                     alt="Profile"
                     className="w-9 h-9 rounded-full border-2 border-[#15803d]"
+                  /> */}
+
+                  <img
+                    // user object ab updated hai, bas peeche timestamp laga do force reload ke liye
+                    src={`${getImageUrl(user.profile_pic)}?t=${new Date().getTime()}`}
+                    alt="Profile"
+                    className="w-9 h-9 rounded-full border-2 border-[#15803d] object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                    }}
                   />
                 </Link>
               ) : (
@@ -534,9 +534,20 @@ const Navbar = () => {
 
             <Link
               to="/offers"
-              className="mr-4 bg-yellow-400 text-[#064E3B] px-5 py-1.5 rounded-full text-xs font-bold hover:bg-yellow-300"
+              className="mr-4 relative flex items-center gap-2 px-6 py-2 rounded-full 
+  text-xs font-extrabold text-[#064E3B] 
+  bg-gradient-to-r from-yellow-300 via-yellow-400 to-orange-400 
+  shadow-lg shadow-orange-400/40 
+  hover:scale-105 transition-all duration-300"
             >
-              {t('nav.offers')}.
+              <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                🔥 {t('nav.offers')}
+              </span>
+
+              {/* HOT badge */}
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-[2px] rounded-full shadow">
+                HOT
+              </span>
             </Link>
           </div>
         </nav>

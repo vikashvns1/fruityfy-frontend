@@ -343,7 +343,7 @@
 // export default OfferPage;
 
 import { useEffect, useState } from 'react';
-import api, { fetchProducts,getImageUrl  } from '../services/api';
+import api, { fetchProducts, getImageUrl } from '../services/api';
 import { MdContentCopy, MdFlashOn, MdCampaign } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
@@ -427,14 +427,45 @@ const OfferPage = () => {
         const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((total / (1000 * 60)) % 60);
 
-        return isRTL 
-            ? `${days}ي ${hours}س ${minutes}د` 
+        return isRTL
+            ? `${days}ي ${hours}س ${minutes}د`
             : `${days}d ${hours}h ${minutes}m`;
     };
 
-    /* COPY COUPON */
+    /* COPY COUPON - FIXED FOR NON-HTTPS SERVERS */
     const copyToClipboard = (code) => {
-        navigator.clipboard.writeText(code);
+        // 1. Try modern API first
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast(code);
+            });
+        } else {
+            // 2. Fallback: Old school 'execCommand' method for non-https
+            const textArea = document.createElement("textarea");
+            textArea.value = code;
+
+            // Ensure it's not visible but part of DOM
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                showToast(code);
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+
+            document.body.removeChild(textArea);
+        }
+    };
+
+    // Helper to keep code clean
+    const showToast = (code) => {
         toast.success(isRTL ? `تم نسخ الكوبون ${code}! 📋` : `Coupon ${code} copied! 📋`, {
             position: isRTL ? "bottom-left" : "bottom-right",
             autoClose: 2000
@@ -483,7 +514,7 @@ const OfferPage = () => {
                                     alt={isRTL ? (camp.name_ar || camp.name) : camp.name}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-500" />
-                                
+
                                 <div className={`absolute inset-0 flex flex-col justify-end p-6 md:p-8 ${isRTL ? 'items-end text-right' : 'items-start text-left'}`}>
                                     <div className={`absolute top-5 ${isRTL ? 'left-5' : 'right-5'} translate-x-2 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100 hidden md:block`}>
                                         <span className="rounded-full bg-white px-4 py-1.5 text-[9px] font-black uppercase tracking-widest text-[#064E3B] shadow-lg">
@@ -550,8 +581,8 @@ const OfferPage = () => {
                                 </h3>
 
                                 <p className="text-xs text-gray-500 mt-1">
-                                    {isRTL 
-                                        ? `على الطلبات الأكثر من ${coupon.min_order_amount} درهم` 
+                                    {isRTL
+                                        ? `على الطلبات الأكثر من ${coupon.min_order_amount} درهم`
                                         : `On orders above AED ${coupon.min_order_amount}`}
                                 </p>
 
