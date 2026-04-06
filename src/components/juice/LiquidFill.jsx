@@ -82,10 +82,10 @@ const LiquidFill = ({ selections = [], totalQty = 0, isMini = false, maxCapacity
 
     return (
         <div className={`relative ${isMini ? 'w-24 h-40' : 'w-44 h-72'} mx-auto transition-all duration-700`}>
-            
+
             {/* Glass Container */}
             <div className="absolute inset-0 border-[4px] border-white/20 rounded-b-[4rem] rounded-t-2xl overflow-hidden bg-white/5 backdrop-blur-sm z-10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]">
-                
+
                 {/* Liquid */}
                 <div
                     className="absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-in-out"
@@ -107,7 +107,7 @@ const LiquidFill = ({ selections = [], totalQty = 0, isMini = false, maxCapacity
             </div>
 
             {/* Top Rim */}
-            <div className="absolute -top-2 left-0 right-0 h-6 border-[3px] border-white/15 rounded-[100%] z-0 bg-white/5" />
+            {/* <div className="absolute -top-2 left-0 right-0 h-6 border-[3px] border-white/15 rounded-[100%] z-0 bg-white/5" /> */}
 
             {/* ML Markers on Glass Side */}
             <div className="absolute -right-8 inset-y-4 flex flex-col justify-between text-[8px] font-black text-white/30 py-2 pointer-events-none">

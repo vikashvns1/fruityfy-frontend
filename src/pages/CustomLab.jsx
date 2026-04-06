@@ -329,7 +329,7 @@ const CustomLab = () => {
             // Restore Glass Selection & Options
             if (savedRecipe.configuration?.options) {
                 const savedOpts = savedRecipe.configuration.options;
-                setCustomOptions(savedOpts); 
+                setCustomOptions(savedOpts);
 
                 Object.keys(savedOpts).forEach(optId => {
                     const option = masterOptions.find(o => o.id === parseInt(optId));
@@ -339,7 +339,7 @@ const CustomLab = () => {
                     }
                 });
             }
-            
+
             // ⭐ Progress Bar Fix: Recalculate Totals from Loaded Data
             if (savedRecipe.configuration?.totals) {
                 setTotals(savedRecipe.configuration.totals);
@@ -385,14 +385,25 @@ const CustomLab = () => {
 
     const handleQtyChange = (item, qty) => {
         if (maxCapacity === 0) {
-            toast.error("Select glass size first!");
+            toast.error("Please select a glass size first!");
             setActiveTab('glass');
             return;
         }
         const val = parseInt(qty);
         const otherQty = selections.filter(s => s.id !== item.id).reduce((sum, s) => sum + s.qty, 0);
-        if (otherQty + val > maxCapacity) {
-            toast.error(`Full! Max ${maxCapacity}ml.`);
+        const newTotal = otherQty + val;
+        if (newTotal > maxCapacity) {
+            const allowedQty = maxCapacity - otherQty;
+
+            // 🔥 FULL CASE
+            if (allowedQty <= 0) {
+                toast.error("Glass is full! You can't add more.");
+            }
+            // ⚠️ LIMITED SPACE CASE
+            else {
+                toast.warning(`You can only add ${allowedQty} ml more.`);
+            }
+
             return;
         }
         let newSelections = [...selections];
@@ -424,12 +435,12 @@ const CustomLab = () => {
 
     const handleSaveAndAdd = (e) => {
         if (e) e.preventDefault();
-        if (selections.length === 0) return toast.error("Bhai, pehle glass toh bharo!");
+        if (selections.length === 0) return toast.error("Nothing in the glass yet. Start by adding ingredients.");
         if (!templateName.trim()) return toast.error("Recipe name required!");
 
         const savedRecipeString = localStorage.getItem('fruitify_custom_mix');
         const savedRecipe = savedRecipeString ? JSON.parse(savedRecipeString) : null;
-        
+
         // ⭐ Overwrite Logic: Keep the same ID for cart synchronization
         const constantId = savedRecipe?.id || 'custom-' + Date.now();
 

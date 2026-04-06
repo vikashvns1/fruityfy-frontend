@@ -5,7 +5,7 @@ import {
 } from 'react-icons/fa';
 import { FaCcVisa, FaCcMastercard, FaCcApplePay, FaCcAmex } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import logoImg from '../../assets/logo.png';
+import logoImg from '../../assets/footerlogo.png';
 
 const Footer = () => {
     const { t, i18n } = useTranslation();
@@ -28,22 +28,33 @@ const Footer = () => {
     ];
 
     return (
-        <footer className="bg-[#064E3B] text-white pt-12 pb-8 border-t-4 border-yellow-400">
+        <footer className="bg-gradient-to-b from-[#064E3B] to-[#022c22] text-white pt-14 pb-8 border-t-4 border-yellow-400">
 
             <div className="w-[92%] max-w-[1280px] mx-auto">
 
                 {/* MAIN GRID */}
-                <div className={`grid grid-cols-1 md:grid-cols-4 gap-10 ${isRTL ? 'text-right' : 'text-left'}`}>
+                <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 ${isRTL ? 'text-right' : 'text-left'}`}>
 
-                    {/* LOGO SECTION */}
-                    <div className="space-y-4">
-                        <Link to="/">
+                    {/* 🔥 COLUMN 1 - LOGO */}
+                    <div className="flex items-start">
+                        <div className="relative">
+
+                            <div className="absolute inset-0 bg-yellow-400/30 blur-2xl rounded-full scale-125"></div>
+
                             <img
                                 src={logoImg}
                                 alt="Fruitify Logo"
-                                className="h-12 md:h-16 w-auto object-contain"
+                                className="relative h-32 md:h-36 lg:h-40 object-contain drop-shadow-2xl"
                             />
-                        </Link>
+                        </div>
+                    </div>
+
+                    {/* 🟢 COLUMN 2 - ABOUT + SOCIAL */}
+                    <div className="space-y-5">
+
+                        <h3 className="text-yellow-400 font-semibold text-sm uppercase tracking-wider">
+                            About Fruitify
+                        </h3>
 
                         <p className="text-green-100 text-sm leading-relaxed opacity-80">
                             {t('footer.about')}
@@ -53,7 +64,7 @@ const Footer = () => {
                             {[FaFacebookF, FaInstagram, FaTwitter].map((Icon, i) => (
                                 <div
                                     key={i}
-                                    className="w-9 h-9 bg-white/10 hover:bg-yellow-400 hover:text-[#064E3B] rounded-lg flex items-center justify-center cursor-pointer transition"
+                                    className="w-10 h-10 bg-white/10 hover:bg-yellow-400 hover:text-[#064E3B] rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-110 shadow-md"
                                 >
                                     <Icon size={14} />
                                 </div>
@@ -61,16 +72,16 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    {/* SHOP */}
+                    {/* 🟡 SHOP */}
                     <div>
-                        <h3 className="text-yellow-400 font-semibold mb-4 text-sm uppercase">
+                        <h3 className="text-yellow-400 font-semibold mb-4 text-sm uppercase tracking-wider">
                             {t('footer.shop_title')}
                         </h3>
                         <ul className="space-y-2 text-sm">
                             {shopLinks.map((link, i) => (
                                 <li key={i}>
                                     <Link to={link.path} className="hover:text-yellow-400 flex items-center gap-2">
-                                        {isRTL ? <FaChevronLeft size={10}/> : <FaChevronRight size={10}/>}
+                                        {isRTL ? <FaChevronLeft size={10} /> : <FaChevronRight size={10} />}
                                         {link.name}
                                     </Link>
                                 </li>
@@ -78,16 +89,16 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* CUSTOMER CARE */}
+                    {/* 🟡 CUSTOMER CARE */}
                     <div>
-                        <h3 className="text-yellow-400 font-semibold mb-4 text-sm uppercase">
+                        <h3 className="text-yellow-400 font-semibold mb-4 text-sm uppercase tracking-wider">
                             {t('footer.care_title')}
                         </h3>
                         <ul className="space-y-2 text-sm">
                             {supportLinks.map((link, i) => (
                                 <li key={i}>
                                     <Link to={link.path} className="hover:text-yellow-400 flex items-center gap-2">
-                                        {isRTL ? <FaChevronLeft size={10}/> : <FaChevronRight size={10}/>}
+                                        {isRTL ? <FaChevronLeft size={10} /> : <FaChevronRight size={10} />}
                                         {link.name}
                                     </Link>
                                 </li>
@@ -95,9 +106,9 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* CONTACT */}
+                    {/* 🟡 CONTACT */}
                     <div className="space-y-4 text-sm">
-                        <h3 className="text-yellow-400 font-semibold mb-4 uppercase">
+                        <h3 className="text-yellow-400 font-semibold mb-4 uppercase tracking-wider">
                             {t('footer.get_in_touch')}
                         </h3>
 
@@ -118,10 +129,11 @@ const Footer = () => {
                             </span>
                         </div>
                     </div>
+
                 </div>
 
                 {/* BOTTOM BAR */}
-                <div className="border-t border-green-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+                <div className="border-t border-green-700 mt-12 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
 
                     <p className="text-green-200/70">
                         © 2026 <span className="text-yellow-400 font-semibold">Fruitify</span>. {t('footer.rights')}
@@ -129,10 +141,10 @@ const Footer = () => {
 
                     <div className="flex items-center gap-3">
                         <span className="text-xs text-green-300">WE ACCEPT</span>
-                        <FaCcVisa size={22} />
-                        <FaCcMastercard size={22} />
-                        <FaCcAmex size={22} />
-                        <FaCcApplePay size={22} />
+                        <FaCcVisa size={24} />
+                        <FaCcMastercard size={24} />
+                        <FaCcAmex size={24} />
+                        <FaCcApplePay size={24} />
                     </div>
                 </div>
 

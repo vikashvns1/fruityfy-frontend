@@ -1112,9 +1112,20 @@ const JuiceBuilder = () => {
         const newTotal = otherIngredientsQty + val;
 
         if (newTotal > maxCapacity) {
-            // Bhai yahan block kar do!
             const allowedQty = maxCapacity - otherIngredientsQty;
-            toast.error(isRTL ? `الكوب ممتلئ! يمكنك إضافة ${allowedQty} مل فقط` : `Glass full! You can only add ${allowedQty}ml more.`);
+
+            if (allowedQty <= 0) {
+                toast.error(isRTL
+                    ? "الكوب ممتلئ! لا يمكنك إضافة المزيد"
+                    : "Glass is full! You can't add more."
+                );
+            } else {
+                toast.warning(isRTL
+                    ? `يمكنك إضافة ${allowedQty} مل فقط`
+                    : `You can only add ${allowedQty}ml more`
+                );
+            }
+
             return;
         }
 
@@ -1587,7 +1598,18 @@ const JuiceBuilder = () => {
 
                                     {/* Visualizer Section */}
                                     <div className="mb-10 pt-4 flex justify-center">
-                                        <LiquidFill selections={selections} totalQty={totals.qty} maxCapacity={maxCapacity} />
+                                        <div
+                                            style={{
+                                                transform: `scale(${maxCapacity === 300 ? 0.8 : maxCapacity === 750 ? 1.15 : 1})`,
+                                                transition: '0.4s ease'
+                                            }}
+                                        >
+                                            <LiquidFill
+                                                selections={selections}
+                                                totalQty={totals.qty}
+                                                maxCapacity={maxCapacity}
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="space-y-8">

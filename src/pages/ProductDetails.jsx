@@ -120,7 +120,7 @@
 
 //     return (
 //         <div className="bg-[#f8fafc] min-h-screen pb-12 font-sans text-slate-900">
-            
+
 //             {/* BREADCRUMBS - More modern look */}
 //             <div className="bg-white border-b border-slate-200 mb-6">
 //                 <div className="max-w-[1280px] mx-auto px-4 py-3 text-xs text-slate-500 flex items-center gap-2">
@@ -205,7 +205,7 @@
 //                 {/* --- RIGHT: DETAILS SECTION --- */}
 //                 <div className="lg:col-span-7 space-y-6">
 //                     <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                        
+
 //                         {/* Title & Badge */}
 //                         <div className="space-y-2 mb-6">
 //                             <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@
 //                                 )}
 //                             </div>
 //                             <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight leading-tight">{product.name}</h1>
-                            
+
 //                             <div className="flex items-center gap-4 pt-1">
 //                                 <div className="flex items-center gap-1.5 bg-green-700 text-white px-2.5 py-1 rounded-lg text-sm font-bold">
 //                                     {avgRating} <Star size={14} fill="white" className="mb-0.5" />
@@ -416,9 +416,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  ShoppingCart, Star, Truck, ShieldCheck, Award, ChevronRight, ChevronLeft,
-  CheckCircle, ThumbsUp, Heart, Share2, Leaf, Clock, MapPin, Info 
+import {
+    ShoppingCart, Star, Truck, ShieldCheck, Award, ChevronRight, ChevronLeft,
+    CheckCircle, ThumbsUp, Heart, Share2, Leaf, Clock, MapPin, Info
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next'; // 1. Added i18n import
 
@@ -446,7 +446,7 @@ const ProductDetails = () => {
     const [selectedImage, setSelectedImage] = useState('');
     const [isZoomed, setIsZoomed] = useState(false);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
+    const [cartQty, setCartQty] = useState(0);
     useEffect(() => {
         const loadProductData = async () => {
             try {
@@ -458,8 +458,8 @@ const ProductDetails = () => {
                     setProduct(currentProduct);
 
                     if (currentProduct.images && currentProduct.images.length > 0) {
-                        const firstImg = typeof currentProduct.images[0] === 'string' 
-                            ? currentProduct.images[0] 
+                        const firstImg = typeof currentProduct.images[0] === 'string'
+                            ? currentProduct.images[0]
                             : currentProduct.images[0].image_url;
                         setSelectedImage(firstImg);
                     } else {
@@ -493,14 +493,14 @@ const ProductDetails = () => {
     }, [slug, navigate]);
 
     // --- HANDLERS ---
-    const handleAddToCart = () => {
+    const handleAddToCart = (qty = 1) => {
         if (!product) return;
         const productWithImg = {
             ...product,
             image_url: selectedImage || product.image_url
         };
-        addToCart(productWithImg, quantity);
-        toast.success(`${quantity} x ${isRTL ? (product.name_ar || product.name) : product.name} ${t('juice_builder.added_toast')}`, {
+        addToCart(productWithImg, qty);
+        toast.success(`${qty} x ${isRTL ? (product.name_ar || product.name) : product.name} ${t('juice_builder.added_toast')}`, {
             position: isRTL ? "bottom-left" : "bottom-center",
             style: { borderRadius: '10px', background: '#333', color: '#fff' }
         });
@@ -525,8 +525,8 @@ const ProductDetails = () => {
     const discountPercent = discountPrice > 0 ? Math.round(((price - discountPrice) / price) * 100) : 0;
     const isOutOfStock = product?.stock_quantity === 0;
 
-    const galleryImages = Array.isArray(product?.images) 
-        ? product.images.map(img => typeof img === 'string' ? img : img.image_url) 
+    const galleryImages = Array.isArray(product?.images)
+        ? product.images.map(img => typeof img === 'string' ? img : img.image_url)
         : [product?.image_url];
 
     const totalReviews = reviews.length;
@@ -539,13 +539,13 @@ const ProductDetails = () => {
 
     return (
         <div className={`bg-[#f8fafc] min-h-screen pb-12 font-sans text-slate-900 ${isRTL ? 'text-right' : 'text-left'}`}>
-            
+
             {/* BREADCRUMBS */}
             <div className="bg-white border-b border-slate-200 mb-6">
                 <div className={`max-w-[1280px] mx-auto px-4 py-3 text-xs text-slate-500 flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                    <Link to="/" className="hover:text-green-600 transition">{t('nav.home')}</Link> 
+                    <Link to="/" className="hover:text-green-600 transition">{t('nav.home')}</Link>
                     {isRTL ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-                    <Link to="/shop" className="hover:text-green-600 transition">{isRTL ? 'المتجر' : 'Shop'}</Link> 
+                    <Link to="/shop" className="hover:text-green-600 transition">{isRTL ? 'المتجر' : 'Shop'}</Link>
                     {isRTL ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
                     <span className="text-slate-800 font-semibold truncate">{isRTL ? (product.name_ar || product.name) : product.name}</span>
                 </div>
@@ -560,7 +560,7 @@ const ProductDetails = () => {
                             {/* Thumbnails */}
                             <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:max-h-[450px] scrollbar-hide">
                                 {galleryImages.map((img, index) => (
-                                    <div 
+                                    <div
                                         key={index}
                                         onMouseEnter={() => setSelectedImage(img)}
                                         className={`w-16 h-16 shrink-0 rounded-xl border-2 cursor-pointer p-1.5 transition-all ${selectedImage === img ? 'border-green-500 bg-green-50' : 'border-slate-100 hover:border-slate-300'}`}
@@ -581,7 +581,7 @@ const ProductDetails = () => {
                                     </button>
                                 </div>
 
-                                <div 
+                                <div
                                     className="w-full h-full cursor-zoom-in flex items-center justify-center"
                                     onMouseEnter={() => setIsZoomed(true)}
                                     onMouseLeave={() => setIsZoomed(false)}
@@ -603,14 +603,66 @@ const ProductDetails = () => {
 
                         {/* CTAs */}
                         <div className={`grid grid-cols-2 gap-4 mt-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                            <button 
+                            {/* <button 
                                 onClick={handleAddToCart}
                                 disabled={isOutOfStock}
                                 className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-100 transition-all active:scale-95 disabled:bg-slate-200 uppercase tracking-tight text-sm"
                             >
                                 <ShoppingCart size={20} /> {isOutOfStock ? (isRTL ? 'نفدت' : 'No Stock') : t('product_details.add_to_cart')}
-                            </button>
-                            <button 
+                            </button> */}
+                            {/* Blinkit Style Add to Cart */}
+
+                            {/* ADD BUTTON */}
+                            {cartQty === 0 ? (
+                                <button
+                                    onClick={() => {
+                                        setCartQty(1);
+                                        handleAddToCart(1);
+                                    }}
+                                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl shadow-md transition active:scale-95"
+                                >
+                                    ADD
+                                </button>
+                            ) : (
+
+                                /* STEPPER */
+                                <div className="flex items-center justify-between bg-white border border-green-500 rounded-xl overflow-hidden shadow-sm">
+
+                                    {/* MINUS */}
+                                    <button
+                                        onClick={() => {
+                                            if (cartQty === 1) {
+                                                setCartQty(0);
+                                                // optional: removeFromCart(product.id)
+                                            } else {
+                                                setCartQty(prev => prev - 1);
+                                                handleAddToCart(-1); // agar support ho
+                                            }
+                                        }}
+                                        className="w-12 h-12 flex items-center justify-center text-xl font-bold text-green-600 hover:bg-green-50"
+                                    >
+                                        −
+                                    </button>
+
+                                    {/* QUANTITY */}
+                                    <span className="font-bold text-green-700 text-lg">
+                                        {cartQty}
+                                    </span>
+
+                                    {/* PLUS */}
+                                    <button
+                                        onClick={() => {
+                                            setCartQty(prev => prev + 1);
+                                            handleAddToCart(1);
+                                        }}
+                                        className="w-12 h-12 flex items-center justify-center text-xl font-bold text-green-600 hover:bg-green-50"
+                                    >
+                                        +
+                                    </button>
+
+                                </div>
+                            )}
+                            <button
                                 onClick={handleBuyNow}
                                 disabled={isOutOfStock}
                                 className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-100 transition-all active:scale-95 disabled:bg-slate-200 uppercase tracking-tight text-sm"
@@ -624,7 +676,7 @@ const ProductDetails = () => {
                 {/* --- RIGHT: DETAILS SECTION --- */}
                 <div className="lg:col-span-7 space-y-6">
                     <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                        
+
                         {/* Title & Badge */}
                         <div className="space-y-2 mb-6">
                             <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
@@ -640,7 +692,7 @@ const ProductDetails = () => {
                             <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight leading-tight">
                                 {isRTL ? (product.name_ar || product.name) : product.name}
                             </h1>
-                            
+
                             <div className={`flex items-center gap-4 pt-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                 <div className={`flex items-center gap-1.5 bg-green-700 text-white px-2.5 py-1 rounded-lg text-sm font-bold ${isRTL ? 'flex-row-reverse' : ''}`}>
                                     {avgRating} <Star size={14} fill="white" className="mb-0.5" />
@@ -730,7 +782,7 @@ const ProductDetails = () => {
                                     <ThumbsUp size={16} /> {t('product_details.tip')}
                                 </h4>
                                 <p className="text-amber-700 text-sm leading-relaxed italic">
-                                    {product.category_name?.toLowerCase().includes('flower') 
+                                    {product.category_name?.toLowerCase().includes('flower')
                                         ? (isRTL ? "للحفاظ على عمر طويل للزهور، قص السيقان بزاوية 45 درجة وحافظ عليها في ماء بارد. تجنب أشعة الشمس المباشرة." : "For long vase life, cut the stems at a 45° angle and keep them in cool water. Avoid direct sunlight.")
                                         : (isRTL ? "يُحفظ في درج الخضروات السفلي من ثلاجتك للحفاظ على الهشاشة والفيتامينات." : "Store in the lower crisper drawer of your refrigerator to maintain crispness and vitamins.")}
                                 </p>
