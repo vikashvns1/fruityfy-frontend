@@ -1081,14 +1081,15 @@ const JuiceBuilder = () => {
         const option = data.custom_options.find(o => o.id === parseInt(optId));
         const value = option?.values.find(v => v.id === valId);
 
-        // Agar option 'Glass Size' wala hai (Naam se check karein ya ID se)
         if (option.name.toLowerCase().includes('glass')) {
-            const capacity = parseInt(value.health_tag); // Humne DB mein 300, 500 store kiya hai
+            const capacity = parseInt(value.health_tag); 
             setMaxCapacity(capacity);
 
-            // Validation: Agar user ne pehle se zyada fill kar diya hai aur ab chota glass le raha hai
+          
             if (totals.qty > capacity) {
-                toast.warning(isRTL ? "تم تجاوز سعة الكوب الجديد!" : "Current mix exceeds new glass capacity!");
+                toast.warning(isRTL ? "تم تجاوز سعة الكوب الجديد!" : "Current mix exceeds new glass capacity!",{
+        toastId: "exceed-capacity"
+    });
                 // Optional: reset selections or trim them
             }
         }
@@ -1100,7 +1101,9 @@ const JuiceBuilder = () => {
 
     const handleQtyChange = (item, qty) => {
         if (maxCapacity === 0) {
-            toast.error(isRTL ? "يرجى اختيار حجم الكوب أولاً" : "Please select a glass size first!");
+            toast.error(isRTL ? "يرجى اختيار حجم الكوب أولاً" : "Please select a glass size first!",{
+            toastId: "select-glass"
+        });
             return;
         }
 
@@ -1117,12 +1120,12 @@ const JuiceBuilder = () => {
             if (allowedQty <= 0) {
                 toast.error(isRTL
                     ? "الكوب ممتلئ! لا يمكنك إضافة المزيد"
-                    : "Glass is full! You can't add more."
+                    : "Glass is full! You can't add more.", { toastId: "glass-full" }
                 );
             } else {
                 toast.warning(isRTL
                     ? `يمكنك إضافة ${allowedQty} مل فقط`
-                    : `You can only add ${allowedQty}ml more`
+                    : `You can only add ${allowedQty}ml more` , { toastId: "limit-ml" }
                 );
             }
 

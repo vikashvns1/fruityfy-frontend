@@ -385,7 +385,7 @@ const CustomLab = () => {
 
     const handleQtyChange = (item, qty) => {
         if (maxCapacity === 0) {
-            toast.error("Please select a glass size first!");
+            toast.error("Please select a glass size first!", { toastId: "select-glass" });
             setActiveTab('glass');
             return;
         }
@@ -397,11 +397,11 @@ const CustomLab = () => {
 
             // 🔥 FULL CASE
             if (allowedQty <= 0) {
-                toast.error("Glass is full! You can't add more.");
+                toast.error("Glass is full! You can't add more.", { toastId: "glass-full" });
             }
             // ⚠️ LIMITED SPACE CASE
             else {
-                toast.warning(`You can only add ${allowedQty} ml more.`);
+                toast.warning(`You can only add ${allowedQty} ml more.`, { toastId: "limit-ml" });
             }
 
             return;
@@ -435,8 +435,8 @@ const CustomLab = () => {
 
     const handleSaveAndAdd = (e) => {
         if (e) e.preventDefault();
-        if (selections.length === 0) return toast.error("Nothing in the glass yet. Start by adding ingredients.");
-        if (!templateName.trim()) return toast.error("Recipe name required!");
+        if (selections.length === 0) return toast.error("Nothing in the glass yet. Start by adding ingredients.", { toastId: "empty-glass" });
+        if (!templateName.trim()) return toast.error("Recipe name required!", { toastId: "missing-name" });
 
         const savedRecipeString = localStorage.getItem('fruitify_custom_mix');
         const savedRecipe = savedRecipeString ? JSON.parse(savedRecipeString) : null;
